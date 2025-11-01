@@ -1,0 +1,21 @@
+openapi: 3.1.0
+info: { title: MyGrocer API, version: 0.2.0 }
+servers: [ { url: http://localhost:5001/api } ]
+paths:
+  /:
+    get: { summary: Root, responses: { '200': { description: OK } } }
+  /health:
+    get: { summary: Health, responses: { '200': { description: OK } } }
+  /recipes:
+    get:
+      summary: List recipes with match
+      parameters:
+        - in: query; name: time_max; schema: { type: integer }
+        - in: query; name: difficulty; schema: { type: string }
+        - in: query; name: no_shop; schema: { type: boolean }
+      responses: { '200': { description: OK } }
+  /plan:
+    get: { summary: List plan, responses: { '200': { description: OK } } }
+    post: { summary: Add plan entry, responses: { '201': { description: Created } } }
+  /grocery/from-plan:
+    post: { summary: Build grocery list from plan window, responses: { '201': { description: Created } } }
