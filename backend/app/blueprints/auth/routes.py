@@ -1,8 +1,13 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import (
+    create_access_token, create_refresh_token,
+    jwt_required, get_jwt_identity
+)
 from ...extensions import db
 from ...models import User
+
 bp = Blueprint("auth_bp", __name__)
+
 @bp.post("/register")
 def register():
     data = request.get_json() or {}
@@ -15,6 +20,7 @@ def register():
     u = User(email=email); u.set_password(password)
     db.session.add(u); db.session.commit()
     return jsonify({"id": u.id, "email": u.email}), 201
+
 @bp.post("/login")
 def login():
     data = request.get_json() or {}
@@ -23,9 +29,13 @@ def login():
     u = User.query.filter_by(email=email).first()
     if not u or not u.check_password(password):
         return jsonify({"error": "invalid credentials"}), 401
-    return jsonify({"access_token": create_access_token(identity=u.id), "refresh_token": create_refresh_token(identity=u.id)}), 200
+    return jsonify({
+        "access_token": create_access_token(identity=str(u.id)),
+        "refresh_token": create_refresh_token(identity=str(u.id))
+    }), 200
+
 @bp.post("/refresh")
 @jwt_required(refresh=True)
 def refresh():
-    user_id = get_jwt_identity()
+    user_id = get_jwt_identity()           # this is already a string
     return jsonify({"access_token": create_access_token(identity=user_id)}), 200

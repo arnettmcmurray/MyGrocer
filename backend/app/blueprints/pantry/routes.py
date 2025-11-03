@@ -3,19 +3,28 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from ...extensions import db
 from ...models import PantryItem, SourceItem
+
 bp = Blueprint("pantry_bp", __name__)
+
 def _row(p: PantryItem):
-    return {"id": p.id, "source_item_id": p.source_item_id, "quantity": p.quantity, "expiration_date": p.expiration_date.isoformat() if p.expiration_date else None}
+    return {
+        "id": p.id,
+        "source_item_id": p.source_item_id,
+        "quantity": p.quantity,
+        "expiration_date": p.expiration_date.isoformat() if p.expiration_date else None
+    }
+
 @bp.get("/")
 @jwt_required()
 def list_pantry():
-    uid = get_jwt_identity()
+    uid = int(get_jwt_identity())
     rows = PantryItem.query.filter_by(user_id=uid).all()
     return jsonify([_row(p) for p in rows]), 200
+
 @bp.post("/")
 @jwt_required()
 def add_pantry():
-    uid = get_jwt_identity()
+    uid = int(get_jwt_identity())
     data = request.get_json() or {}
     source_item_id = data.get("source_item_id")
     quantity = int(data.get("quantity", 1))
@@ -35,11 +44,16 @@ def add_pantry():
     p = PantryItem(user_id=uid, source_item_id=source_item_id, quantity=quantity, expiration_date=expiration_date)
     db.session.add(p); db.session.commit()
     return jsonify(_row(p)), 201
+
 @bp.get("/expiring")
 @jwt_required()
 def expiring():
-    uid = get_jwt_identity()
+    uid = int(get_jwt_identity())
     days = int(request.args.get("days", 7))
     cutoff = date.today() + timedelta(days=days)
-    q = PantryItem.query.filter(PantryItem.user_id == uid, PantryItem.expiration_date.isnot(None), PantryItem.expiration_date <= cutoff)
+    q = PantryItem.query.filter(
+        PantryItem.user_id == uid,
+        PantryItem.expiration_date.isnot(None),
+        PantryItem.expiration_date <= cutoff
+    )
     return jsonify([_row(p) for p in q.all()]), 200
