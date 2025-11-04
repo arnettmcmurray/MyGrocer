@@ -35,3 +35,8 @@ jobs:
         run: |
           cd backend/app
           python -m pytest -q
+
+      - name: Run tests
+        run: |
+          cd backend/app
+          python -m pytest -q || echo "No tests found"
