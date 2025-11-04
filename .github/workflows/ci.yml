@@ -17,11 +17,19 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install deps
+            - name: Install deps
         working-directory: backend/app
         run: |
           pip install -r requirements.txt
           pip install pytest
+
+      - name: Verify pytest install
+        working-directory: backend/app
+        run: |
+          pip show pytest || echo "pytest not found"
+          which python
+          python -m pytest --version || echo "pytest module not found"
+
 
       - name: Import check
         working-directory: backend/app
