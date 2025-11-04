@@ -1,4 +1,5 @@
-from app import create_app
+from backend.app import create_app
+
 
 def test_health_route():
     app = create_app()

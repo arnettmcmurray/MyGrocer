@@ -9,34 +9,25 @@ on:
 jobs:
   build-test:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
       - name: Install dependencies and verify
+        working-directory: backend/app
         run: |
-          cd backend/app
           pip install -r requirements.txt
           pip install pytest
-          pip show pytest || echo "pytest not found"
-          which python
-          python -m pytest --version || echo "pytest module not found"
+          pytest --version
 
       - name: Import check
-        run: |
-          cd backend/app
-          python -c "import flask"
+        working-directory: backend/app
+        run: python -c "import flask"
 
       - name: Run tests
+        working-directory: backend/app
         run: |
-          cd backend/app
-          python -m pytest -q
-
-      - name: Run tests
-        run: |
-          cd backend/app
+          export PYTHONPATH=../..
           python -m pytest -v --maxfail=1 --disable-warnings
