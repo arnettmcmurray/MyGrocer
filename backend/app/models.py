@@ -1,26 +1,49 @@
+# models.py
 from datetime import datetime
 from .extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
+
+# === Users ===
 class User(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    # === new link to household ===
+    household_id = db.Column(db.Integer, db.ForeignKey("households.id", ondelete="SET NULL"), nullable=True, index=True)
+
     categories = db.relationship("Category", backref="user", lazy=True, cascade="all, delete-orphan")
     source_items = db.relationship("SourceItem", backref="user", lazy=True, cascade="all, delete-orphan")
     pantry_items = db.relationship("PantryItem", backref="user", lazy=True, cascade="all, delete-orphan")
     grocery_lists = db.relationship("GroceryList", backref="user", lazy=True, cascade="all, delete-orphan")
+
     def set_password(self, raw: str) -> None:
         self.password_hash = generate_password_hash(raw)
+
     def check_password(self, raw: str) -> bool:
         return check_password_hash(self.password_hash, raw)
+
+# === Households ===
+class Household(db.Model):
+    __tablename__ = "households"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False, unique=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    # one-to-many: household -> users
+    users = db.relationship("User", backref="household", lazy=True)
+
+# === Categories ===
 class Category(db.Model):
     __tablename__ = "categories"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     name = db.Column(db.String(120), nullable=False)
     __table_args__ = (db.UniqueConstraint("user_id", "name", name="uq_category_user_name"),)
+
+# === Source Items ===
 class SourceItem(db.Model):
     __tablename__ = "source_items"
     id = db.Column(db.Integer, primary_key=True)
@@ -29,6 +52,8 @@ class SourceItem(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey("categories.id", ondelete="SET NULL"), nullable=True)
     category = db.relationship("Category", backref=db.backref("items", lazy=True))
     __table_args__ = (db.UniqueConstraint("user_id", "name", name="uq_sourceitem_user_name"),)
+
+# === Pantry Items ===
 class PantryItem(db.Model):
     __tablename__ = "pantry_items"
     id = db.Column(db.Integer, primary_key=True)
@@ -37,6 +62,8 @@ class PantryItem(db.Model):
     quantity = db.Column(db.Integer, nullable=False, default=1)
     expiration_date = db.Column(db.Date, nullable=True)
     source_item = db.relationship("SourceItem")
+
+# === Grocery Lists ===
 class GroceryList(db.Model):
     __tablename__ = "grocery_lists"
     id = db.Column(db.Integer, primary_key=True)
@@ -46,6 +73,8 @@ class GroceryList(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     items = db.relationship("GroceryListItem", backref="list", lazy=True, cascade="all, delete-orphan")
     __table_args__ = (db.Index("ix_active_list_per_user", "user_id", "is_active"),)
+
+# === Grocery List Items ===
 class GroceryListItem(db.Model):
     __tablename__ = "grocery_list_items"
     id = db.Column(db.Integer, primary_key=True)

@@ -1,6 +1,8 @@
 from flask import Flask
 from .config import DevConfig
-from .extensions import db, jwt
+from .extensions import db, jwt, migrate
+
+
 def _register_bps(app):
     from .blueprints.health.routes import bp as health_bp
     from .blueprints.auth.routes import bp as auth_bp
@@ -9,6 +11,8 @@ def _register_bps(app):
     from .blueprints.pantry.routes import bp as pantry_bp
     from .blueprints.lists.routes import bp as lists_bp
     from .blueprints.foodref.routes import bp as foodref_bp
+    from .blueprints.households.routes import bp as households_bp  # ← new
+
     app.register_blueprint(health_bp, url_prefix="/api/v1/health")
     app.register_blueprint(auth_bp, url_prefix="/api/v1/auth")
     app.register_blueprint(categories_bp, url_prefix="/api/v1/categories")
@@ -16,10 +20,13 @@ def _register_bps(app):
     app.register_blueprint(pantry_bp, url_prefix="/api/v1/pantry")
     app.register_blueprint(lists_bp, url_prefix="/api/v1/lists")
     app.register_blueprint(foodref_bp, url_prefix="/api/v1/foodref")
+    app.register_blueprint(households_bp, url_prefix="/api/v1/households")  # ← new
+
 def create_app(config_class=DevConfig) -> Flask:
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config_class)
     db.init_app(app)
+    migrate.init_app(app, db)
     jwt.init_app(app)
     _register_bps(app)
     return app
