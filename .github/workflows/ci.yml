@@ -11,8 +11,9 @@ jobs:
         with: { python-version: "3.12" }
       - name: Install deps
         working-directory: backend/app
-        run: pip install -r requirements.txt
-
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
       - name: Import check
         run: python -c "import flask"
       - name: Run tests
