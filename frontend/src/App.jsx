@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import HouseholdsView from "./views/HouseholdsView";
 import { AuthProvider } from "./context/AuthContext";
+import PantryList from "./components/PantryList";
 
 export default function App() {
   return (

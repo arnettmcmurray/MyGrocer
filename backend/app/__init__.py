@@ -3,6 +3,7 @@ from .config import DevConfig
 from .extensions import db, jwt, migrate
 from flask_cors import CORS
 
+
 def _register_bps(app):
     from .blueprints.health.routes import bp as health_bp
     from .blueprints.auth.routes import bp as auth_bp
@@ -22,22 +23,23 @@ def _register_bps(app):
     app.register_blueprint(foodref_bp, url_prefix="/api/v1/foodref")
     app.register_blueprint(households_bp, url_prefix="/api/v1/households")
 
+
 def create_app(config_class=DevConfig) -> Flask:
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config_class)
 
-    # init extensions
+    # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
 
-    # enable CORS for dev frontend
+    # Enable CORS for frontend (dev only)
     CORS(
-    app,
-    resources={r"/api/*": {"origins": "http://localhost:5173"}},
-    supports_credentials=True,
-)
+        app,
+        resources={r"/api/*": {"origins": "http://localhost:5173"}},
+        supports_credentials=True,
+    )
 
-    # register blueprints
+    # Register blueprints
     _register_bps(app)
     return app

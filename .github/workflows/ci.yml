@@ -2,32 +2,30 @@ name: CI
 
 on:
   push:
-    branches: ["main"]
+    branches: [main]
   pull_request:
-    branches: ["main"]
+    branches: [main]
 
 jobs:
-  build-test:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install dependencies and verify
-        working-directory: backend/app
+      - name: Install Python dependencies
         run: |
-          pip install -r requirements.txt
-          pip install pytest
-          pytest --version
-
-      - name: Import check
-        working-directory: backend/app
-        run: python -c "import flask"
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
 
       - name: Run tests
-        working-directory: backend/app
+        working-directory: backend
         run: |
-          export PYTHONPATH=../..
-          python -m pytest -v --maxfail=1 --disable-warnings
+          export PYTHONPATH=.
+          pytest -q

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getHouseholds } from "../api/households";
 import HouseholdCard from "../components/HouseholdCard";
+import PantryList from "../components/PantryList";
 
 export default function HouseholdsView() {
   const [households, setHouseholds] = useState([]);
@@ -25,8 +26,9 @@ export default function HouseholdsView() {
   if (error) return <div>Error loading households</div>;
 
   return (
-    <div>
+    <div className="page-container">
       <h1>Households</h1>
+      <PantryList />  
       <div style={{ display: "grid", gap: 12 }}>
         {households.length === 0 ? (
           <p>No households found</p>
