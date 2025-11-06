@@ -32,7 +32,11 @@ def create_app(config_class=DevConfig) -> Flask:
     jwt.init_app(app)
 
     # enable CORS for dev frontend
-    CORS(app, origins=["http://localhost:5173"])
+    CORS(
+    app,
+    resources={r"/api/*": {"origins": "http://localhost:5173"}},
+    supports_credentials=True,
+)
 
     # register blueprints
     _register_bps(app)
