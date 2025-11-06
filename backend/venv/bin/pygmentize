@@ -1,4 +1,4 @@
-#!/Users/arnettmcmurray/Documents/GitHub/Assignments/mygrocer/backend/venv/bin/python3
+#!/Users/arnettmcmurray/Documents/GitHub/Assignments/mygrocer/backend/venv/bin/python
 import sys
 from pygments.cmdline import main
 if __name__ == '__main__':

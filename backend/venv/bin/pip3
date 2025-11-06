@@ -1,4 +1,4 @@
-#!/Users/arnettmcmurray/Documents/GitHub/Assignments/mygrocer/backend/venv/bin/python3
+#!/Users/arnettmcmurray/Documents/GitHub/Assignments/mygrocer/backend/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
