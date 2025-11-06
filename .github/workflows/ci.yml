@@ -28,4 +28,4 @@ jobs:
         working-directory: backend
         run: |
           export PYTHONPATH=.
-          pytest -q
+          python -m pytest -q
