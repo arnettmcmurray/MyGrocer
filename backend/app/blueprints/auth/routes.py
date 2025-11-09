@@ -6,7 +6,7 @@ from flask_jwt_extended import (
 from ...extensions import db
 from ...models import User
 
-bp = Blueprint("auth_bp", __name__)
+bp = Blueprint("auth", __name__)
 
 @bp.post("/register")
 def register():
