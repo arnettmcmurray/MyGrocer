@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MyGrocer | Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      defer
+      src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <script defer src="./js/ui.js"></script>
+  </head>
+  <body class="bg-gray-50 text-gray-900" x-data="authPage()">
+    <header class="border-b bg-white shadow-sm">
+      <div
+        class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center"
+      >
+        <h1 class="text-xl font-semibold text-green-700">MyGrocer</h1>
+        <nav class="space-x-4 text-sm">
+          <a href="./index.html" class="hover:underline">Home</a>
+          <a href="./login.html" class="font-semibold text-green-700">Login</a>
+          <a href="./pantry.html" class="hover:underline">Pantry</a>
+          <a href="./households.html" class="hover:underline">Households</a>
+          <a href="./recipes.html" class="hover:underline">Recipes</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="max-w-md mx-auto px-4 py-10">
+      <section
+        class="bg-white p-6 border rounded-xl shadow-sm"
+        x-data="{ mode: 'login' }"
+      >
+        <h2
+          class="text-lg font-semibold mb-4"
+          x-text="mode === 'login' ? 'Login' : 'Register'"
+        ></h2>
+
+        <form
+          @submit.prevent="mode==='login' ? login() : register()"
+          class="space-y-4"
+        >
+          <div>
+            <label class="block text-sm mb-1">Email</label>
+            <input
+              type="email"
+              x-model="email"
+              class="w-full border px-3 py-2 rounded"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Password</label>
+            <input
+              type="password"
+              x-model="password"
+              class="w-full border px-3 py-2 rounded"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="w-full bg-green-600 text-white py-2 rounded"
+          >
+            <span x-text="mode==='login' ? 'Login' : 'Create Account'"></span>
+          </button>
+        </form>
+
+        <p class="text-sm mt-4 text-center">
+          <span x-show="mode==='login'">
+            Don’t have an account?
+            <button @click="mode='register'" class="text-green-700 underline">
+              Register
+            </button>
+          </span>
+          <span x-show="mode==='register'">
+            Already have an account?
+            <button @click="mode='login'" class="text-green-700 underline">
+              Login
+            </button>
+          </span>
+        </p>
+
+        <p class="text-sm mt-4 text-center text-gray-600" x-text="message"></p>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MyGrocer | Recipes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      defer
+      src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <script defer src="./js/ui.js"></script>
+  </head>
+  <body class="bg-gray-50 text-gray-900" x-data="recipesPage()">
+    <header class="border-b bg-white shadow-sm">
+      <div
+        class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center"
+      >
+        <h1 class="text-xl font-semibold text-green-700">MyGrocer</h1>
+        <nav class="space-x-4 text-sm">
+          <a href="./index.html" class="hover:underline">Home</a>
+          <a href="./login.html" class="hover:underline">Login</a>
+          <a href="./pantry.html" class="hover:underline">Pantry</a>
+          <a href="./households.html" class="hover:underline">Households</a>
+          <a href="./recipes.html" class="font-semibold text-green-700"
+            >Recipes</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 py-8">
+      <section class="p-6 bg-white border rounded-xl shadow-sm">
+        <h2 class="text-lg font-semibold mb-4">Recipes (Coming Soon)</h2>
+
+        <p class="text-gray-600 text-sm mb-4">
+          This feature will connect to the OpenFoodFacts API and suggest recipes
+          based on your pantry items. For now, test the backend connection
+          below.
+        </p>
+
+        <button
+          @click="fetchRef"
+          class="bg-green-600 text-white px-4 py-2 rounded"
+        >
+          Fetch /foodref
+        </button>
+
+        <pre
+          class="mt-4 bg-gray-100 p-4 rounded text-xs overflow-x-auto"
+          x-text="JSON.stringify(recipes, null, 2) || 'No data yet'"
+        ></pre>
+      </section>
+    </main>
+  </body>
+</html>

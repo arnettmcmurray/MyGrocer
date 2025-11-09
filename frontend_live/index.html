@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MyGrocer | Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      defer
+      src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <script type="module" src="./js/ui.js"></script>
+  </head>
+  <body class="bg-gray-50 text-gray-900" x-data="homePage()">
+    <header class="nav">
+      <div class="max-w-5xl mx-auto flex justify-between p-4 items-center">
+        <h1 class="text-xl font-semibold text-green-700">MyGrocer</h1>
+        <nav class="space-x-4">
+          <a href="./pantry.html">Pantry</a>
+          <a href="./recipes.html">Recipes</a>
+          <a href="./households.html">Households</a>
+          <button @click="logout" class="text-red-600 underline">Logout</button>
+        </nav>
+      </div>
+    </header>
+    <main class="max-w-5xl mx-auto p-6">
+      <section class="card text-center">
+        <h2 class="text-lg font-semibold mb-2">Welcome to MyGrocer</h2>
+        <p class="text-gray-600">
+          Manage your pantry, households, and recipes.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

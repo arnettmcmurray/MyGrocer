@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MyGrocer | Households</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      defer
+      src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <script defer src="./js/ui.js"></script>
+  </head>
+  <body
+    class="bg-gray-50 text-gray-900"
+    x-data="householdsPage()"
+    x-init="init()"
+  >
+    <header class="border-b bg-white shadow-sm">
+      <div
+        class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center"
+      >
+        <h1 class="text-xl font-semibold text-green-700">MyGrocer</h1>
+        <nav class="space-x-4 text-sm">
+          <a href="./index.html" class="hover:underline">Home</a>
+          <a href="./login.html" class="hover:underline">Login</a>
+          <a href="./pantry.html" class="hover:underline">Pantry</a>
+          <a href="./households.html" class="font-semibold text-green-700"
+            >Households</a
+          >
+          <a href="./recipes.html" class="hover:underline">Recipes</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 py-8">
+      <section class="p-6 bg-white border rounded-xl shadow-sm">
+        <h2 class="text-lg font-semibold mb-4">Households</h2>
+
+        <div class="flex gap-2 mb-4">
+          <input
+            type="text"
+            placeholder="New household name"
+            x-model="name"
+            class="flex-grow border px-3 py-2 rounded"
+          />
+          <button
+            @click="addHousehold"
+            class="bg-green-600 text-white px-4 py-2 rounded"
+          >
+            Add
+          </button>
+        </div>
+
+        <ul class="divide-y divide-gray-200">
+          <template x-for="h in households" :key="h.id">
+            <li class="py-2 flex justify-between items-center">
+              <span x-text="h.name"></span>
+              <button
+                @click="removeHousehold(h.id)"
+                class="text-sm text-red-600 hover:underline"
+              >
+                Delete
+              </button>
+            </li>
+          </template>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>
