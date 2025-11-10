@@ -1,4 +1,5 @@
-const API_BASE = "http://127.0.0.1:5000/api/v1";
+import { CONFIG } from "./config.js";
+const API_BASE = CONFIG.API_BASE;
 
 // === Utilities ===
 function getToken() {
