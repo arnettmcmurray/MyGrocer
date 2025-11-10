@@ -37,13 +37,10 @@ def create_app(config_class=DevConfig) -> Flask:
     # --- Fixed CORS placement ---
     CORS(
         app,
-        resources={
-            r"/api/*": {
-                "origins": [
-                    "http://localhost:5173",
-                    "http://127.0.0.1:5173",
-                    "http://localhost:8000",
-                    "http://127.0.0.1:8000"
+        resources={r"/api/*": {"origins": [
+        "http://localhost:5173",
+        "https://mygrocer.vercel.app",
+        "https://mygrocer-backend.onrender.com"
                 ]
             }
         },
