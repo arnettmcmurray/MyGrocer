@@ -1,25 +1,22 @@
-from flask import Flask
+from flask import Flask  # type: ignore
 from .config import DevConfig
 from .extensions import db, jwt, migrate
-from flask_cors import CORS
+from flask_cors import CORS  # type: ignore
 
 
 def _register_bps(app):
-    # Existing blueprints
+    # === Blueprint registrations ===
     from .blueprints.health.routes import bp as health_bp
     from .blueprints.households.routes import bp as households_bp
     from .blueprints.pantry.routes import bp as pantry_bp
-
-    app.register_blueprint(health_bp, url_prefix="/api/v1/health")
-    app.register_blueprint(households_bp, url_prefix="/api/v1/households")
-    app.register_blueprint(pantry_bp, url_prefix="/api/v1/pantry")
-
-    # Newly added blueprints
     from .blueprints.auth.routes import bp as auth_bp
     from .blueprints.items.routes import bp as items_bp
     from .blueprints.lists.routes import bp as lists_bp
     from .blueprints.foodref.routes import bp as foodref_bp
 
+    app.register_blueprint(health_bp, url_prefix="/api/v1/health")
+    app.register_blueprint(households_bp, url_prefix="/api/v1/households")
+    app.register_blueprint(pantry_bp, url_prefix="/api/v1/pantry")
     app.register_blueprint(auth_bp, url_prefix="/api/v1/auth")
     app.register_blueprint(items_bp, url_prefix="/api/v1/items")
     app.register_blueprint(lists_bp, url_prefix="/api/v1/lists")
@@ -34,18 +31,31 @@ def create_app(config_class=DevConfig) -> Flask:
     migrate.init_app(app, db)
     jwt.init_app(app)
 
-    # --- Fixed CORS placement ---
+    # === CORS setup ===
     CORS(
         app,
-        resources={r"/api/*": {"origins": [
-        "http://localhost:5173",
-        "https://mygrocer.vercel.app",
-        "https://mygrocer-backend.onrender.com"
+        resources={
+            r"/api/*": {
+                "origins": [
+                    "http://localhost:5173",
+                    "https://mygrocer.vercel.app",
+                    "https://mygrocer-backend.onrender.com",
                 ]
             }
         },
-        supports_credentials=True
+        supports_credentials=True,
     )
 
     _register_bps(app)
+
+    # === TEMP: Create all tables if missing ===
+    # runs once during the next Render deploy to initialize the database
+    with app.app_context():
+        from .extensions import db
+        try:
+            db.create_all()
+            print("Database tables created successfully.")
+        except Exception as e:
+            print(f"Database setup failed: {e}")
+
     return app
