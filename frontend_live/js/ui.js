@@ -23,7 +23,8 @@ async function apiFetch(endpoint, method = "GET", data = null, auth = true) {
     opts.headers["Authorization"] = `Bearer ${getToken()}`;
   if (data) opts.body = JSON.stringify(data);
 
-  const res = await fetch(`${API_BASE}${endpoint}`, opts);
+  const url = `${API_BASE.replace(/\/$/, "")}/${endpoint.replace(/^\//, "")}`;
+  const res = await fetch(url, opts);
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
@@ -34,7 +35,7 @@ function homePage() {
     statusMsg: "",
     async checkHealth() {
       try {
-        const r = await fetch(`${API_BASE}/health/`);
+        const r = await fetch(`${API_BASE.replace(/\/$/, "")}/health`);
         this.statusMsg = r.ok ? "✅ API is live" : "❌ API issue";
       } catch {
         this.statusMsg = "⚠️ Connection failed";
@@ -63,7 +64,7 @@ function authPage() {
     async login() {
       try {
         const data = await apiFetch(
-          "/auth/login",
+          "auth/login",
           "POST",
           { email: this.email, password: this.password },
           false
@@ -78,7 +79,7 @@ function authPage() {
     async register() {
       try {
         await apiFetch(
-          "/auth/register",
+          "auth/register",
           "POST",
           { email: this.email, password: this.password },
           false
@@ -102,7 +103,7 @@ function pantryPage() {
 
     async loadItems() {
       try {
-        this.items = await apiFetch("/pantry/");
+        this.items = await apiFetch("pantry");
       } catch {
         this.message = "⚠️ Failed to load pantry.";
       }
@@ -111,7 +112,7 @@ function pantryPage() {
     async addItem() {
       if (!this.name) return;
       try {
-        await apiFetch("/pantry/", "POST", { name: this.name });
+        await apiFetch("pantry", "POST", { name: this.name });
         this.name = "";
         this.loadItems();
         this.message = "✅ Item added.";
@@ -122,7 +123,7 @@ function pantryPage() {
 
     async removeItem(id) {
       try {
-        await apiFetch(`/pantry/${id}`, "DELETE");
+        await apiFetch(`pantry/${id}`, "DELETE");
         this.loadItems();
         this.message = "🗑️ Item deleted.";
       } catch {
@@ -159,7 +160,7 @@ function householdsPage() {
 
     async loadHouseholds() {
       try {
-        this.households = await apiFetch("/households/");
+        this.households = await apiFetch("households");
       } catch {
         this.message = "⚠️ Load failed.";
       }
@@ -168,7 +169,7 @@ function householdsPage() {
     async addHousehold() {
       if (!this.name) return;
       try {
-        await apiFetch("/households/", "POST", { name: this.name });
+        await apiFetch("households", "POST", { name: this.name });
         this.name = "";
         this.loadHouseholds();
         this.message = "✅ Household added.";
@@ -179,7 +180,7 @@ function householdsPage() {
 
     async removeHousehold(id) {
       try {
-        await apiFetch(`/households/${id}`, "DELETE");
+        await apiFetch(`households/${id}`, "DELETE");
         this.loadHouseholds();
         this.message = "🗑️ Household deleted.";
       } catch {

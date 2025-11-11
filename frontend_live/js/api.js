@@ -19,11 +19,12 @@ export const API = {
     if (auth && this.getToken())
       headers["Authorization"] = `Bearer ${this.getToken()}`;
 
-    const res = await fetch(`${this.base}${path}`, {
+    const url = `${this.base.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+    const res = await fetch(url, {
       method,
       headers,
       body: data ? JSON.stringify(data) : null,
-      credentials: "include", // keep session cookies consistent
+      credentials: "include",
     });
 
     if (!res.ok) {
@@ -35,29 +36,29 @@ export const API = {
   },
 
   async login(email, password) {
-    const r = await this.req("/auth/login", "POST", { email, password }, false);
+    const r = await this.req("auth/login", "POST", { email, password }, false);
     this.setToken(r.access_token);
     return r;
   },
 
   async register(email, password) {
-    return this.req("/auth/register", "POST", { email, password }, false);
+    return this.req("auth/register", "POST", { email, password }, false);
   },
 
   async pantryList() {
-    return this.req("/pantry/");
+    return this.req("pantry");
   },
 
   async pantryAdd(name) {
-    return this.req("/pantry/", "POST", { name });
+    return this.req("pantry", "POST", { name });
   },
 
   async pantryDel(id) {
-    return this.req(`/pantry/${id}`, "DELETE");
+    return this.req(`pantry/${id}`, "DELETE");
   },
 
   async households() {
-    return this.req("/households/");
+    return this.req("households");
   },
 
   async lookupFood(barcode) {
