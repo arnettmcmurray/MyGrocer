@@ -48,12 +48,21 @@ def create_app(config_class=DevConfig) -> Flask:
 
     _register_bps(app)
 
-    # === ONE-TIME: auto-create tables for free-tier deploy ===
-    try:
-        with app.app_context():
-            db.create_all()
-            print("✅ Database tables created successfully (auto-run).")
-    except Exception as e:
-        print(f"❌ Database setup failed: {e}")
+    # === ONE-TIME: auto-create tables for free-tier deploy with retry ===
+    import time
+    from sqlalchemy.exc import OperationalError
+
+    for attempt in range(5):
+        try:
+            with app.app_context():
+                db.create_all()
+                print("✅ Database tables created successfully (auto-run).")
+                break
+        except OperationalError as e:
+            print(f"⚠️ DB not ready, retrying ({attempt + 1}/5): {e}")
+            time.sleep(5)
+        except Exception as e:
+            print(f"❌ Database setup failed: {e}")
+            break
 
     return app
