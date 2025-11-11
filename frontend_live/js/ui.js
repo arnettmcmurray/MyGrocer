@@ -1,35 +1,38 @@
 import { CONFIG } from "./config.js";
 const API_BASE = CONFIG.API_BASE;
 
-// === Utilities ===
+// optional debug
+console.log("API_BASE =", API_BASE);
+
+// === Token helpers ===
 function getToken() {
-  return localStorage.getItem("mygrocer_token");
+  return localStorage.getItem(CONFIG.TOKEN_KEY);
 }
-
 function setToken(t) {
-  localStorage.setItem("mygrocer_token", t);
+  localStorage.setItem(CONFIG.TOKEN_KEY, t);
 }
-
 function clearToken() {
-  localStorage.removeItem("mygrocer_token");
+  localStorage.removeItem(CONFIG.TOKEN_KEY);
 }
 
+// === Generic API fetch ===
 async function apiFetch(endpoint, method = "GET", data = null, auth = true) {
-  const opts = {
-    method,
-    headers: { "Content-Type": "application/json" },
-  };
-  if (auth && getToken())
-    opts.headers["Authorization"] = `Bearer ${getToken()}`;
-  if (data) opts.body = JSON.stringify(data);
+  const headers = { "Content-Type": "application/json" };
+  if (auth && getToken()) headers.Authorization = `Bearer ${getToken()}`;
 
   const url = `${API_BASE.replace(/\/$/, "")}/${endpoint.replace(/^\//, "")}`;
-  const res = await fetch(url, opts);
+  const res = await fetch(url, {
+    method,
+    headers,
+    body: data ? JSON.stringify(data) : null,
+    credentials: "include",
+  });
+
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
-// === Home Page ===
+// === Pages ===
 function homePage() {
   return {
     statusMsg: "",
@@ -49,13 +52,9 @@ function homePage() {
       clearToken();
       window.location.href = "./login.html";
     },
-    init() {
-      console.log("Home ready");
-    },
   };
 }
 
-// === Auth Page (Login / Register) ===
 function authPage() {
   return {
     email: "",
@@ -66,13 +65,14 @@ function authPage() {
         const data = await apiFetch(
           "auth/login",
           "POST",
-          { email: this.email, password: this.password },
+          { email: this.email.trim().toLowerCase(), password: this.password },
           false
         );
         setToken(data.access_token);
-        this.message = "✅ Logged in successfully";
-        setTimeout(() => (window.location.href = "./index.html"), 1000);
-      } catch {
+        this.message = "✅ Logged in";
+        setTimeout(() => (window.location.href = "./index.html"), 600);
+      } catch (e) {
+        console.error(e);
         this.message = "❌ Login failed";
       }
     },
@@ -81,18 +81,18 @@ function authPage() {
         await apiFetch(
           "auth/register",
           "POST",
-          { email: this.email, password: this.password },
+          { email: this.email.trim().toLowerCase(), password: this.password },
           false
         );
-        this.message = "✅ Account created, you can log in now";
-      } catch {
+        this.message = "✅ Account created. Log in now.";
+      } catch (e) {
+        console.error(e);
         this.message = "❌ Registration failed";
       }
     },
   };
 }
 
-// === Pantry Page ===
 function pantryPage() {
   return {
     items: [],
@@ -100,7 +100,6 @@ function pantryPage() {
     barcode: "",
     lookupResult: "",
     message: "",
-
     async loadItems() {
       try {
         this.items = await apiFetch("pantry");
@@ -108,7 +107,6 @@ function pantryPage() {
         this.message = "⚠️ Failed to load pantry.";
       }
     },
-
     async addItem() {
       if (!this.name) return;
       try {
@@ -120,7 +118,6 @@ function pantryPage() {
         this.message = "❌ Add failed.";
       }
     },
-
     async removeItem(id) {
       try {
         await apiFetch(`pantry/${id}`, "DELETE");
@@ -130,34 +127,30 @@ function pantryPage() {
         this.message = "❌ Delete failed.";
       }
     },
-
     async lookupItem() {
       if (!this.barcode) return;
       try {
-        const res = await fetch(
+        const r = await fetch(
           `https://world.openfoodfacts.org/api/v0/product/${this.barcode}.json`
         );
-        const data = await res.json();
-        this.lookupResult = data.product?.product_name || "No product found";
+        const d = await r.json();
+        this.lookupResult = d.product?.product_name || "No product found";
         if (this.lookupResult && !this.name) this.name = this.lookupResult;
       } catch {
         this.lookupResult = "Lookup failed";
       }
     },
-
     init() {
       this.loadItems();
     },
   };
 }
 
-// === Households Page ===
 function householdsPage() {
   return {
     households: [],
     name: "",
     message: "",
-
     async loadHouseholds() {
       try {
         this.households = await apiFetch("households");
@@ -165,7 +158,6 @@ function householdsPage() {
         this.message = "⚠️ Load failed.";
       }
     },
-
     async addHousehold() {
       if (!this.name) return;
       try {
@@ -177,7 +169,6 @@ function householdsPage() {
         this.message = "❌ Add failed.";
       }
     },
-
     async removeHousehold(id) {
       try {
         await apiFetch(`households/${id}`, "DELETE");
@@ -187,14 +178,12 @@ function householdsPage() {
         this.message = "❌ Delete failed.";
       }
     },
-
     init() {
       this.loadHouseholds();
     },
   };
 }
 
-// === Recipes Page (Open Food Facts Demo) ===
 function recipesPage() {
   return {
     barcode: "",
@@ -202,14 +191,21 @@ function recipesPage() {
     async fetchRef() {
       if (!this.barcode) return;
       try {
-        const res = await fetch(
+        const r = await fetch(
           `https://world.openfoodfacts.org/api/v0/product/${this.barcode}.json`
         );
-        const data = await res.json();
-        this.product = data.product?.product_name || "No result";
+        const d = await r.json();
+        this.product = d.product?.product_name || "No result";
       } catch {
         this.product = "Lookup failed";
       }
     },
   };
 }
+
+// expose page factories so Alpine can call x-data="authPage()"
+window.homePage = homePage;
+window.authPage = authPage;
+window.pantryPage = pantryPage;
+window.householdsPage = householdsPage;
+window.recipesPage = recipesPage;
