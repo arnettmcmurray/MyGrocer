@@ -48,4 +48,12 @@ def create_app(config_class=DevConfig) -> Flask:
 
     _register_bps(app)
 
+    # === ONE-TIME: auto-create tables for free-tier deploy ===
+    try:
+        with app.app_context():
+            db.create_all()
+            print("✅ Database tables created successfully (auto-run).")
+    except Exception as e:
+        print(f"❌ Database setup failed: {e}")
+
     return app
