@@ -1,7 +1,7 @@
-from flask import Flask  # type: ignore
+from flask import Flask
 from .config import DevConfig
+from flask_cors import CORS
 from .extensions import db, jwt, migrate
-from flask_cors import CORS  # type: ignore
 
 
 def _register_bps(app):
@@ -47,15 +47,5 @@ def create_app(config_class=DevConfig) -> Flask:
     )
 
     _register_bps(app)
-
-    # === TEMP: Create all tables if missing ===
-    # runs once during the next Render deploy to initialize the database
-    with app.app_context():
-        from .extensions import db
-        try:
-            db.create_all()
-            print("Database tables created successfully.")
-        except Exception as e:
-            print(f"Database setup failed: {e}")
 
     return app
