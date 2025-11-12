@@ -1,6 +1,7 @@
 console.log("UI script loaded");
 window.authPage && console.log("authPage visible");
 
+// helper token storage helpers
 function saveToken(token) {
   localStorage.setItem(window.STORE_KEYS.token, token);
 }
@@ -17,7 +18,13 @@ function getUser() {
     return null;
   }
 }
+
 async function api(path, { method = "GET", body = null, auth = true } = {}) {
+  // prefer window.API.req if available (api.js); fallback to fetch
+  if (window.API && typeof window.API.req === "function") {
+    // map flags to API.req signature (path without leading slash)
+    return window.API.req(path.replace(/^\//, ""), method, body, auth);
+  }
   const headers = { "Content-Type": "application/json" };
   if (auth) {
     const t = getToken();
@@ -43,6 +50,26 @@ async function api(path, { method = "GET", body = null, auth = true } = {}) {
 }
 
 // ===== pages =====
+
+// minimal home page factory so index.html x-data won't break
+function homePage() {
+  return {
+    statusMsg: "unknown",
+    async init() {
+      try {
+        const res = await fetch(window.API_BASE);
+        this.statusMsg = res.ok
+          ? "Backend reachable"
+          : `Backend returned ${res.status}`;
+      } catch (e) {
+        this.statusMsg = "Backend unreachable";
+      }
+    },
+    checkHealth() {
+      this.init();
+    },
+  };
+}
 
 // login.html / register flow
 function authPage() {
@@ -75,8 +102,6 @@ function authPage() {
             },
           });
           this.success = "Registered. You can log in now.";
-          // optional auto-login:
-          // await this.loginInternal();
         } else {
           await this.loginInternal();
         }
@@ -96,8 +121,7 @@ function authPage() {
       saveToken(out.access_token);
       if (out.user) saveUser(out.user);
       this.success = "Logged in.";
-      // redirect to pantry
-      window.location.href = "/frontend_live/pantry.html";
+      window.location.href = "./pantry.html";
     },
   };
 }
@@ -109,9 +133,8 @@ function pantryPage() {
     error: "",
     items: [],
     async init() {
-      // guard
       if (!getToken()) {
-        window.location.href = "/frontend_live/login.html";
+        window.location.href = "./login.html";
         return;
       }
       try {
@@ -158,8 +181,6 @@ function recipesPage() {
       if (!this.q?.trim()) return;
       this.loading = true;
       try {
-        // OpenFoodFacts v2 search (free, CORS-friendly)
-        // fields kept tight to avoid payload bloat
         const url = new URL("https://world.openfoodfacts.org/api/v2/search");
         url.searchParams.set("page_size", "20");
         url.searchParams.set(
@@ -173,7 +194,6 @@ function recipesPage() {
         const r = await fetch(url.toString());
         const data = await r.json();
         const products = data?.products || [];
-        // Normalize a narrow shape for the UI
         this.results = products.map((p) => ({
           name: p.product_name || "(no name)",
           brand: p.brands || "",
@@ -192,7 +212,43 @@ function recipesPage() {
   };
 }
 
-// simple header component (optional)
+// households page simple factory (keeps existing markup safe)
+function householdsPage() {
+  return {
+    name: "",
+    households: [],
+    async init() {
+      try {
+        this.households = await api("/households");
+      } catch (e) {
+        this.households = [];
+      }
+    },
+    async addHousehold() {
+      if (!this.name?.trim()) return;
+      try {
+        const h = await api("/households", {
+          method: "POST",
+          body: { name: this.name },
+        });
+        this.households.push(h);
+        this.name = "";
+      } catch (e) {
+        alert("Failed to add household");
+      }
+    },
+    async removeHousehold(id) {
+      try {
+        await api(`/households/${id}`, { method: "DELETE" });
+        this.households = this.households.filter((h) => h.id !== id);
+      } catch (e) {
+        alert("Failed to delete");
+      }
+    },
+  };
+}
+
+// simple header component
 function topNav() {
   return {
     get loggedIn() {
@@ -201,10 +257,11 @@ function topNav() {
     logout() {
       localStorage.removeItem(window.STORE_KEYS.token);
       localStorage.removeItem(window.STORE_KEYS.user);
-      window.location.href = "/frontend_live/login.html";
+      window.location.href = "./login.html";
     },
   };
 }
+
 // --- expose existing page factories to global scope for Alpine (append) ---
 console.log("ui.js loaded (expose step)");
 try {
@@ -212,6 +269,8 @@ try {
   if (typeof pantryPage === "function") window.pantryPage = pantryPage;
   if (typeof recipesPage === "function") window.recipesPage = recipesPage;
   if (typeof homePage === "function") window.homePage = homePage;
+  if (typeof householdsPage === "function")
+    window.householdsPage = householdsPage;
   if (typeof topNav === "function") window.topNav = topNav;
 
   console.log("ui.js: exposed:", {
@@ -219,6 +278,7 @@ try {
     pantryPage: !!window.pantryPage,
     recipesPage: !!window.recipesPage,
     homePage: !!window.homePage,
+    householdsPage: !!window.householdsPage,
     topNav: !!window.topNav,
   });
 } catch (e) {

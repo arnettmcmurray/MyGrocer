@@ -1,68 +1,55 @@
-import { CONFIG } from "./config.js";
+window.API = (function () {
+  const base = (window.API_BASE || "").replace(/\/$/, "");
 
-export const API = {
-  base: CONFIG.API_BASE,
-  foodfacts: "https://world.openfoodfacts.org/api/v0/product",
+  function getToken() {
+    return localStorage.getItem(window.STORE_KEYS.token);
+  }
+  function setToken(t) {
+    localStorage.setItem(window.STORE_KEYS.token, t);
+  }
+  function clearToken() {
+    localStorage.removeItem(window.STORE_KEYS.token);
+  }
 
-  getToken() {
-    return localStorage.getItem(CONFIG.TOKEN_KEY);
-  },
-  setToken(t) {
-    localStorage.setItem(CONFIG.TOKEN_KEY, t);
-  },
-  clearToken() {
-    localStorage.removeItem(CONFIG.TOKEN_KEY);
-  },
-
-  async req(path, method = "GET", data = null, auth = true) {
+  async function req(path, method = "GET", data = null, auth = true) {
     const headers = { "Content-Type": "application/json" };
-    if (auth && this.getToken())
-      headers["Authorization"] = `Bearer ${this.getToken()}`;
-
-    const url = `${this.base.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+    if (auth && getToken()) headers["Authorization"] = `Bearer ${getToken()}`;
+    const url = `${base}/${path.replace(/^\//, "")}`;
     const res = await fetch(url, {
       method,
       headers,
       body: data ? JSON.stringify(data) : null,
       credentials: "include",
     });
-
     if (!res.ok) {
-      console.error("API request failed:", res.status, path);
-      throw new Error(await res.text());
+      const text = await res.text();
+      console.error("API request failed:", res.status, path, text);
+      throw new Error(text || `HTTP ${res.status}`);
     }
+    try {
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
 
-    return res.json();
-  },
-
-  async login(email, password) {
-    const r = await this.req("auth/login", "POST", { email, password }, false);
-    this.setToken(r.access_token);
-    return r;
-  },
-
-  async register(email, password) {
-    return this.req("auth/register", "POST", { email, password }, false);
-  },
-
-  async pantryList() {
-    return this.req("pantry");
-  },
-
-  async pantryAdd(name) {
-    return this.req("pantry", "POST", { name });
-  },
-
-  async pantryDel(id) {
-    return this.req(`pantry/${id}`, "DELETE");
-  },
-
-  async households() {
-    return this.req("households");
-  },
-
-  async lookupFood(barcode) {
-    const r = await fetch(`${this.foodfacts}/${barcode}.json`);
-    return r.json();
-  },
-};
+  return {
+    login: async (email, password) => {
+      const r = await req("auth/login", "POST", { email, password }, false);
+      if (r?.access_token) setToken(r.access_token);
+      return r;
+    },
+    register: async (name, email, password) => {
+      return req("auth/register", "POST", { name, email, password }, false);
+    },
+    pantryList: () => req("pantry"),
+    pantryAdd: (name) => req("pantry", "POST", { name }),
+    pantryDel: (id) => req(`pantry/${id}`, "DELETE"),
+    households: () => req("households"),
+    lookupFood: (barcode) =>
+      fetch(
+        `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`
+      ).then((r) => r.json()),
+    req,
+  };
+})();
