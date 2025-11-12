@@ -1,145 +1,109 @@
-import { CONFIG } from "./config.js";
-const API_BASE = CONFIG.API_BASE;
-console.log("✅ Live build loaded");
-console.log("API_BASE =", API_BASE);
+const API = "https://mygrocer-backend.onrender.com/api/v1";
+const TOKEN_KEY = "mygrocer_token";
 
-// === Token helpers ===
+// === Local storage helpers ===
 function getToken() {
-  return localStorage.getItem(CONFIG.TOKEN_KEY);
+  return localStorage.getItem(TOKEN_KEY);
 }
 function setToken(t) {
-  localStorage.setItem(CONFIG.TOKEN_KEY, t);
+  localStorage.setItem(TOKEN_KEY, t);
 }
 function clearToken() {
-  localStorage.removeItem(CONFIG.TOKEN_KEY);
-}
-
-// === Generic API fetch ===
-async function apiFetch(endpoint, method = "GET", data = null, auth = true) {
-  const headers = { "Content-Type": "application/json" };
-  if (auth && getToken()) headers.Authorization = `Bearer ${getToken()}`;
-  const url = `${API_BASE.replace(/\/$/, "")}/${endpoint.replace(/^\//, "")}`;
-  const res = await fetch(url, {
-    method,
-    headers,
-    body: data ? JSON.stringify(data) : null,
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
-}
-
-// === Home Page ===
-function homePage() {
-  return {
-    statusMsg: "",
-    async checkHealth() {
-      try {
-        const r = await fetch(`${API_BASE}/health`);
-        this.statusMsg = r.ok ? "✅ API is live" : "❌ API issue";
-      } catch {
-        this.statusMsg = "⚠️ Connection failed";
-      }
-    },
-    logout() {
-      clearToken();
-      window.location.href = "./login.html";
-    },
-    init() {
-      this.checkHealth();
-    },
-  };
+  localStorage.removeItem(TOKEN_KEY);
 }
 
 // === Auth Page ===
-function authPage() {
+window.authPage = function () {
   return {
+    mode: "login",
     email: "",
     password: "",
     message: "",
     async login() {
       try {
-        const data = await apiFetch(
-          "auth/login",
-          "POST",
-          {
-            email: this.email.trim().toLowerCase(),
-            password: this.password,
-          },
-          false
-        );
+        const res = await fetch(`${API}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: this.email, password: this.password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Login failed");
         setToken(data.access_token);
-        this.message = "✅ Logged in";
-        setTimeout(() => (window.location.href = "./index.html"), 700);
-      } catch {
-        this.message = "❌ Login failed";
+        window.location.href = "./index.html";
+      } catch (err) {
+        this.message = err.message;
       }
     },
     async register() {
       try {
-        await apiFetch(
-          "auth/register",
-          "POST",
-          {
-            email: this.email.trim().toLowerCase(),
-            password: this.password,
-          },
-          false
-        );
-        this.message = "✅ Account created. Log in now.";
-      } catch {
-        this.message = "❌ Registration failed";
+        const res = await fetch(`${API}/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: this.email, password: this.password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Registration failed");
+        this.message = "Account created! Please log in.";
+        this.mode = "login";
+      } catch (err) {
+        this.message = err.message;
       }
     },
   };
-}
+};
+
+// === Home Page ===
+window.homePage = function () {
+  return {
+    message: "Welcome to MyGrocer",
+  };
+};
 
 // === Pantry Page ===
-function pantryPage() {
+window.pantryPage = function () {
   return {
     items: [],
-    message: "",
-    async loadItems() {
+    async init() {
       try {
-        this.items = await apiFetch("pantry");
+        const res = await fetch(`${API}/pantry`);
+        this.items = await res.json();
       } catch {
-        this.message = "⚠️ Failed to load pantry.";
+        this.items = [{ id: 1, name: "Error loading pantry" }];
       }
     },
-    async addItem() {
-      const name = prompt("Item name:");
-      if (!name) return;
-      await apiFetch("pantry", "POST", { name });
-      this.loadItems();
-    },
-    init() {
-      this.loadItems();
+  };
+};
+
+// === Households Page ===
+window.householdsPage = function () {
+  return {
+    households: [],
+    async init() {
+      try {
+        const res = await fetch(`${API}/households`);
+        this.households = await res.json();
+      } catch {
+        this.households = [{ id: 1, name: "Error loading households" }];
+      }
     },
   };
-}
+};
 
 // === Recipes Page ===
-function recipesPage() {
+window.recipesPage = function () {
   return {
-    barcode: "",
-    product: "",
-    async fetchRef() {
-      if (!this.barcode) return;
+    recipes: [],
+    async init() {
       try {
-        const r = await fetch(
-          `https://world.openfoodfacts.org/api/v0/product/${this.barcode}.json`
+        // Example: live nutrition/recipe API
+        const res = await fetch(
+          "https://world.openfoodfacts.org/api/v2/product/737628064502.json"
         );
-        const d = await r.json();
-        this.product = d.product?.product_name || "No result";
+        const data = await res.json();
+        this.recipes = data.product ? [data.product] : [];
       } catch {
-        this.product = "Lookup failed";
+        this.recipes = [{ id: 1, name: "Error fetching recipe data" }];
       }
     },
   };
-}
-
-// === Expose for Alpine ===
-window.homePage = homePage;
-window.authPage = authPage;
-window.pantryPage = pantryPage;
-window.recipesPage = recipesPage;
+};
