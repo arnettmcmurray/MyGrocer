@@ -1,71 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login | MyGrocer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>MyGrocer — Login/Register</title>
+
     <script
       defer
       src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
     ></script>
-    <script src="./js/ui.js"></script>
+    <script defer src="/frontend_live/js/config.js"></script>
+    <script defer src="/frontend_live/js/ui.js"></script>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    />
   </head>
+  <body>
+    <main class="container" x-data="authPage()">
+      <h1>MyGrocer</h1>
+      <nav>
+        <a href="/frontend_live/index.html">Home</a>
+        <a href="/frontend_live/pantry.html">Pantry</a>
+        <a href="/frontend_live/recipes.html">Recipes</a>
+        <a href="#" aria-disabled="true">Delivery (coming soon)</a>
+      </nav>
 
-  <body
-    class="bg-gray-50 text-gray-900 flex items-center justify-center min-h-screen"
-    x-data="authPage()"
-  >
-    <div class="w-full max-w-md bg-white border rounded-2xl shadow p-6">
-      <h2
-        class="text-xl font-semibold text-center mb-4"
-        x-text="mode === 'login' ? 'Login' : 'Register'"
-      ></h2>
+      <article>
+        <h2 x-text="mode === 'login' ? 'Login' : 'Register'"></h2>
 
-      <form
-        @submit.prevent="mode === 'login' ? login() : register()"
-        class="space-y-4"
-      >
-        <input
-          type="email"
-          x-model="email"
-          placeholder="Email"
-          required
-          class="w-full border px-3 py-2 rounded focus:ring focus:ring-green-200"
-        />
-        <input
-          type="password"
-          x-model="password"
-          placeholder="Password"
-          required
-          class="w-full border px-3 py-2 rounded focus:ring focus:ring-green-200"
-        />
+        <div x-show="mode === 'register'" style="margin-bottom: 0.5rem">
+          <label
+            >Name <input type="text" x-model="name" placeholder="Your name"
+          /></label>
+        </div>
+        <label
+          >Email
+          <input type="email" x-model="email" placeholder="you@example.com"
+        /></label>
+        <label
+          >Password
+          <input type="password" x-model="password" placeholder="••••••••"
+        /></label>
+
+        <div
+          role="alert"
+          style="color: crimson"
+          x-show="error"
+          x-text="error"
+        ></div>
+        <div
+          role="status"
+          style="color: seagreen"
+          x-show="success"
+          x-text="success"
+        ></div>
+
         <button
-          type="submit"
-          class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded"
-          x-text="mode === 'login' ? 'Login' : 'Register'"
-        ></button>
-      </form>
+          @click="submit"
+          :aria-busy="loading"
+          :disabled="loading"
+          style="margin-top: 0.5rem"
+        >
+          <span
+            x-show="!loading"
+            x-text="mode === 'login' ? 'Login' : 'Create Account'"
+          ></span>
+          <span x-show="loading">Working…</span>
+        </button>
 
-      <p class="text-center text-sm mt-4 text-gray-600">
-        <span x-show="mode === 'login'">
-          Don’t have an account?
+        <p style="margin-top: 0.5rem">
           <a
             href="#"
-            class="text-green-700 font-semibold"
-            @click="mode='register'"
-            >Register</a
-          >
-        </span>
-        <span x-show="mode === 'register'">
-          Already registered?
-          <a href="#" class="text-green-700 font-semibold" @click="mode='login'"
-            >Login</a
-          >
-        </span>
-      </p>
-
-      <p x-text="message" class="text-center text-sm mt-4 text-red-600"></p>
-    </div>
+            @click.prevent="toggleMode()"
+            x-text="mode === 'login' ? 'No account? Register' : 'Have an account? Login'"
+          ></a>
+        </p>
+      </article>
+    </main>
   </body>
 </html>

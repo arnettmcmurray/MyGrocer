@@ -1,94 +1,66 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" x-data>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MyGrocer | Pantry</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>MyGrocer — Pantry</title>
+
     <script
       defer
       src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
     ></script>
-    <script src="./js/ui.js"></script>
-  </head>
+    <script defer src="/frontend_live/js/config.js"></script>
+    <script defer src="/frontend_live/js/ui.js"></script>
 
-  <body class="bg-gray-50 text-gray-900" x-data="pantryPage()" x-init="init()">
-    <header class="border-b bg-white shadow-sm">
-      <div
-        class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center"
-      >
-        <h1 class="text-xl font-semibold text-green-700">MyGrocer</h1>
-        <nav class="space-x-4 text-sm">
-          <a href="./index.html" class="hover:underline">Home</a>
-          <a href="./pantry.html" class="font-semibold text-green-700"
-            >Pantry</a
-          >
-          <a href="./households.html" class="hover:underline">Households</a>
-          <a href="./recipes.html" class="hover:underline">Recipes</a>
-          <button
-            @click="window.location.href='./login.html'"
-            class="text-red-600 hover:underline"
-          >
-            Logout
-          </button>
-        </nav>
-      </div>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    />
+  </head>
+  <body>
+    <header class="container" x-data="topNav()">
+      <nav>
+        <ul>
+          <li><strong>MyGrocer</strong></li>
+        </ul>
+        <ul>
+          <li><a href="/frontend_live/index.html">Home</a></li>
+          <li><a href="/frontend_live/recipes.html">Recipes</a></li>
+          <li><a href="#" aria-disabled="true">Delivery (coming soon)</a></li>
+          <li><button @click="logout" x-show="loggedIn">Logout</button></li>
+        </ul>
+      </nav>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 py-10 space-y-8">
-      <!-- Pantry Controls -->
-      <section class="p-6 bg-white border rounded-xl shadow-sm">
-        <h2 class="text-lg font-semibold mb-4">Pantry Items</h2>
+    <main class="container" x-data="pantryPage()" x-init="init()">
+      <article>
+        <h2>Your Pantry</h2>
+        <div
+          role="alert"
+          style="color: crimson"
+          x-show="error"
+          x-text="error"
+        ></div>
+        <div x-show="loading">Loading…</div>
 
-        <div class="flex gap-2 mb-4">
-          <input
-            type="text"
-            placeholder="New item name"
-            x-model="name"
-            class="flex-grow border px-3 py-2 rounded focus:outline-none focus:ring focus:ring-green-200"
-          />
-          <button
-            @click="addItem"
-            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-          >
-            Add
-          </button>
-        </div>
+        <form
+          @submit.prevent="addItem($event.target.item.value); $event.target.reset();"
+        >
+          <input name="item" placeholder="Add item…" />
+          <button>Add</button>
+        </form>
 
-        <!-- Pantry List -->
-        <ul class="divide-y divide-gray-200" x-show="items.length > 0">
-          <template x-for="item in items" :key="item.id">
-            <li
-              class="py-2 flex justify-between items-center hover:bg-gray-50 px-2 rounded"
-            >
-              <span x-text="item.name" class="text-gray-800"></span>
-              <button
-                @click="removeItem(item.id)"
-                class="text-sm text-red-600 hover:underline"
-              >
-                Delete
+        <ul>
+          <template x-for="it in items" :key="it.id">
+            <li>
+              <span x-text="it.name"></span>
+              <button @click="removeItem(it.id)" style="margin-left: 0.5rem">
+                Remove
               </button>
             </li>
           </template>
         </ul>
-
-        <p
-          x-show="items.length === 0"
-          class="text-sm text-gray-600 text-center mt-4"
-        >
-          No pantry items yet.
-        </p>
-      </section>
-
-      <!-- Future Enhancements -->
-      <section class="p-6 bg-white border rounded-xl shadow-sm">
-        <h3 class="text-lg font-semibold text-green-700 mb-2">Coming Soon</h3>
-        <ul class="list-disc ml-5 space-y-1 text-sm text-gray-600">
-          <li>Automatic pantry updates via barcode scan</li>
-          <li>Expiration tracking & notifications</li>
-          <li>AI-based recipe suggestions using pantry data</li>
-        </ul>
-      </section>
+      </article>
     </main>
   </body>
 </html>
