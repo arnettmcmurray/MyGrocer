@@ -21,3 +21,5 @@ class DevConfig(Config):
     else:
         os.makedirs(INSTANCE_DIR, exist_ok=True)
         SQLALCHEMY_DATABASE_URI = f"sqlite:///{os.path.join(INSTANCE_DIR, 'mygrocer.db')}"
+
+print("=== ACTIVE DB URI ===", os.getenv("DATABASE_URL"))
