@@ -65,4 +65,10 @@ def create_app(config_class=DevConfig) -> Flask:
             print(f"❌ Database setup failed: {e}")
             break
 
+        # === Health Check ===
+    @app.get("/api/v1/health")
+    def health():
+        return {"ok": True}, 200
+
     return app
+ 

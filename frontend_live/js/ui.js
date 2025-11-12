@@ -1,7 +1,6 @@
 import { CONFIG } from "./config.js";
 const API_BASE = CONFIG.API_BASE;
-
-// optional debug
+console.log("✅ Live build loaded");
 console.log("API_BASE =", API_BASE);
 
 // === Token helpers ===
@@ -19,7 +18,6 @@ function clearToken() {
 async function apiFetch(endpoint, method = "GET", data = null, auth = true) {
   const headers = { "Content-Type": "application/json" };
   if (auth && getToken()) headers.Authorization = `Bearer ${getToken()}`;
-
   const url = `${API_BASE.replace(/\/$/, "")}/${endpoint.replace(/^\//, "")}`;
   const res = await fetch(url, {
     method,
@@ -27,34 +25,33 @@ async function apiFetch(endpoint, method = "GET", data = null, auth = true) {
     body: data ? JSON.stringify(data) : null,
     credentials: "include",
   });
-
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
-// === Pages ===
+// === Home Page ===
 function homePage() {
   return {
     statusMsg: "",
     async checkHealth() {
       try {
-        const r = await fetch(`${API_BASE.replace(/\/$/, "")}/health`);
+        const r = await fetch(`${API_BASE}/health`);
         this.statusMsg = r.ok ? "✅ API is live" : "❌ API issue";
       } catch {
         this.statusMsg = "⚠️ Connection failed";
       }
     },
-    tokenPreview() {
-      const t = getToken();
-      return t ? t.slice(0, 40) + "..." : null;
-    },
     logout() {
       clearToken();
       window.location.href = "./login.html";
     },
+    init() {
+      this.checkHealth();
+    },
   };
 }
 
+// === Auth Page ===
 function authPage() {
   return {
     email: "",
@@ -65,14 +62,16 @@ function authPage() {
         const data = await apiFetch(
           "auth/login",
           "POST",
-          { email: this.email.trim().toLowerCase(), password: this.password },
+          {
+            email: this.email.trim().toLowerCase(),
+            password: this.password,
+          },
           false
         );
         setToken(data.access_token);
         this.message = "✅ Logged in";
-        setTimeout(() => (window.location.href = "./index.html"), 600);
-      } catch (e) {
-        console.error(e);
+        setTimeout(() => (window.location.href = "./index.html"), 700);
+      } catch {
         this.message = "❌ Login failed";
       }
     },
@@ -81,24 +80,24 @@ function authPage() {
         await apiFetch(
           "auth/register",
           "POST",
-          { email: this.email.trim().toLowerCase(), password: this.password },
+          {
+            email: this.email.trim().toLowerCase(),
+            password: this.password,
+          },
           false
         );
         this.message = "✅ Account created. Log in now.";
-      } catch (e) {
-        console.error(e);
+      } catch {
         this.message = "❌ Registration failed";
       }
     },
   };
 }
 
+// === Pantry Page ===
 function pantryPage() {
   return {
     items: [],
-    name: "",
-    barcode: "",
-    lookupResult: "",
     message: "",
     async loadItems() {
       try {
@@ -108,37 +107,10 @@ function pantryPage() {
       }
     },
     async addItem() {
-      if (!this.name) return;
-      try {
-        await apiFetch("pantry", "POST", { name: this.name });
-        this.name = "";
-        this.loadItems();
-        this.message = "✅ Item added.";
-      } catch {
-        this.message = "❌ Add failed.";
-      }
-    },
-    async removeItem(id) {
-      try {
-        await apiFetch(`pantry/${id}`, "DELETE");
-        this.loadItems();
-        this.message = "🗑️ Item deleted.";
-      } catch {
-        this.message = "❌ Delete failed.";
-      }
-    },
-    async lookupItem() {
-      if (!this.barcode) return;
-      try {
-        const r = await fetch(
-          `https://world.openfoodfacts.org/api/v0/product/${this.barcode}.json`
-        );
-        const d = await r.json();
-        this.lookupResult = d.product?.product_name || "No product found";
-        if (this.lookupResult && !this.name) this.name = this.lookupResult;
-      } catch {
-        this.lookupResult = "Lookup failed";
-      }
+      const name = prompt("Item name:");
+      if (!name) return;
+      await apiFetch("pantry", "POST", { name });
+      this.loadItems();
     },
     init() {
       this.loadItems();
@@ -146,44 +118,7 @@ function pantryPage() {
   };
 }
 
-function householdsPage() {
-  return {
-    households: [],
-    name: "",
-    message: "",
-    async loadHouseholds() {
-      try {
-        this.households = await apiFetch("households");
-      } catch {
-        this.message = "⚠️ Load failed.";
-      }
-    },
-    async addHousehold() {
-      if (!this.name) return;
-      try {
-        await apiFetch("households", "POST", { name: this.name });
-        this.name = "";
-        this.loadHouseholds();
-        this.message = "✅ Household added.";
-      } catch {
-        this.message = "❌ Add failed.";
-      }
-    },
-    async removeHousehold(id) {
-      try {
-        await apiFetch(`households/${id}`, "DELETE");
-        this.loadHouseholds();
-        this.message = "🗑️ Household deleted.";
-      } catch {
-        this.message = "❌ Delete failed.";
-      }
-    },
-    init() {
-      this.loadHouseholds();
-    },
-  };
-}
-
+// === Recipes Page ===
 function recipesPage() {
   return {
     barcode: "",
@@ -203,9 +138,8 @@ function recipesPage() {
   };
 }
 
-// expose page factories so Alpine can call x-data="authPage()"
+// === Expose for Alpine ===
 window.homePage = homePage;
 window.authPage = authPage;
 window.pantryPage = pantryPage;
-window.householdsPage = householdsPage;
 window.recipesPage = recipesPage;
