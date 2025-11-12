@@ -11,7 +11,15 @@ class Config:
 class DevConfig(Config):
     DATABASE_URL = os.getenv("DATABASE_URL", "")
     if DATABASE_URL:
-        SQLALCHEMY_DATABASE_URI = DATABASE_URL
+        uri = DATABASE_URL
+        # driver prefix and sslmode
+        if uri.startswith("postgres://"):
+            uri = uri.replace("postgres://", "postgresql+pg8000://")
+        elif uri.startswith("postgresql://"):
+            uri = uri.replace("postgresql://", "postgresql+pg8000://")
+        if "?sslmode=require" not in uri:
+            uri += "?sslmode=require"
+        SQLALCHEMY_DATABASE_URI = uri
     else:
         os.makedirs(INSTANCE_DIR, exist_ok=True)
         SQLALCHEMY_DATABASE_URI = f"sqlite:///{os.path.join(INSTANCE_DIR, 'mygrocer.db')}"

@@ -3,8 +3,8 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://mygrocer-backend.onrender.com/api/$1"
+      "source": "/api/v1/(.*)",
+      "destination": "https://mygrocer-backend.onrender.com/api/v1/$1"
     }
   ]
 }
