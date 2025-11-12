@@ -1,22 +1,20 @@
 import os
-from datetime import timedelta
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-INSTANCE_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "instance"))
+
+INSTANCE_DIR = os.path.join(os.path.dirname(__file__), "..", "instance")
+
 class Config:
-    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
-    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-jwt-secret")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=30)
-    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=7)
+    SECRET_KEY = os.getenv("SECRET_KEY", "dev")
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev")
+
 class DevConfig(Config):
     DATABASE_URL = os.getenv("DATABASE_URL", "")
     if DATABASE_URL:
         uri = DATABASE_URL
-        # driver prefix and sslmode
+        # normalize to psycopg2 driver
         if uri.startswith("postgres://"):
-            uri = uri.replace("postgres://", "postgresql+pg8000://")
-        elif uri.startswith("postgresql://"):
-            uri = uri.replace("postgresql://", "postgresql+pg8000://")
+            uri = uri.replace("postgres://", "postgresql://")
+        # Render requires sslmode=require
         if "?sslmode=require" not in uri:
             uri += "?sslmode=require"
         SQLALCHEMY_DATABASE_URI = uri
