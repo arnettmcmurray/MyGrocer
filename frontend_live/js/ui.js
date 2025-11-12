@@ -205,3 +205,22 @@ function topNav() {
     },
   };
 }
+// --- expose existing page factories to global scope for Alpine (append) ---
+console.log("ui.js loaded (expose step)");
+try {
+  if (typeof authPage === "function") window.authPage = authPage;
+  if (typeof pantryPage === "function") window.pantryPage = pantryPage;
+  if (typeof recipesPage === "function") window.recipesPage = recipesPage;
+  if (typeof homePage === "function") window.homePage = homePage;
+  if (typeof topNav === "function") window.topNav = topNav;
+
+  console.log("ui.js: exposed:", {
+    authPage: !!window.authPage,
+    pantryPage: !!window.pantryPage,
+    recipesPage: !!window.recipesPage,
+    homePage: !!window.homePage,
+    topNav: !!window.topNav,
+  });
+} catch (e) {
+  console.warn("ui.js: expose failed", e);
+}
