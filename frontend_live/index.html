@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>MyGrocer | Home</title>
 
-    <link rel="icon" href="data:," />
-
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="/js/config.js"></script>
     <script defer src="/js/ui.js"></script>
@@ -16,21 +14,18 @@
     ></script>
   </head>
 
-  <body class="bg-gray-50 text-gray-900">
-    <header class="border-b bg-white shadow-sm" x-data="topNav()">
+  <body class="bg-gray-900 text-gray-100">
+    <header class="border-b bg-gray-800 shadow-sm" x-data="topNav()">
       <div
         class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center"
       >
-        <h1 class="text-xl font-semibold text-green-700">MyGrocer</h1>
-        <nav class="space-x-4 text-sm">
-          <a href="/index.html" class="font-semibold text-green-700">Home</a>
+        <h1 class="text-xl font-semibold text-green-400">MyGrocer</h1>
+        <nav class="space-x-6 text-sm">
+          <a href="/index.html" class="hover:underline">Home</a>
           <a href="/pantry.html" class="hover:underline">Pantry</a>
           <a href="/households.html" class="hover:underline">Households</a>
           <a href="/recipes.html" class="hover:underline">Recipes</a>
-          <button
-            @click="logout"
-            class="text-red-600 font-semibold hover:underline"
-          >
+          <button @click="logout" class="text-red-400 hover:underline">
             Logout
           </button>
         </nav>
@@ -42,16 +37,14 @@
       x-data="homePage()"
       x-init="init()"
     >
-      <section
-        class="bg-white p-6 border rounded-xl shadow-sm flex flex-col sm:flex-row sm:justify-between sm:items-center"
-      >
-        <div>
-          <h2 class="text-lg font-semibold">Backend Status</h2>
-          <p class="text-sm text-gray-600" x-text="statusMsg"></p>
-        </div>
+      <section class="bg-gray-800 p-6 rounded-xl shadow-lg">
+        <h2 class="text-lg font-semibold text-green-400 mb-2">
+          Backend Status
+        </h2>
+        <p class="text-gray-300 text-sm" x-text="statusMsg"></p>
         <button
           @click="checkHealth"
-          class="mt-4 sm:mt-0 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+          class="mt-4 bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-white"
         >
           Refresh
         </button>
@@ -60,32 +53,26 @@
       <section class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <a
           href="/pantry.html"
-          class="p-6 bg-white border rounded-xl shadow-sm hover:shadow-md transition"
+          class="p-6 bg-gray-800 rounded-xl shadow-lg hover:bg-gray-700 transition"
         >
-          <h3 class="text-lg font-semibold mb-2 text-green-700">Pantry</h3>
-          <p class="text-sm text-gray-600">
-            View, add, and manage items in your pantry.
-          </p>
+          <h3 class="text-lg font-semibold text-green-400 mb-1">Pantry</h3>
+          <p class="text-gray-300 text-sm">View and manage pantry items.</p>
         </a>
 
         <a
           href="/households.html"
-          class="p-6 bg-white border rounded-xl shadow-sm hover:shadow-md transition"
+          class="p-6 bg-gray-800 rounded-xl shadow-lg hover:bg-gray-700 transition"
         >
-          <h3 class="text-lg font-semibold mb-2 text-green-700">Households</h3>
-          <p class="text-sm text-gray-600">
-            Manage shared grocery lists by household.
-          </p>
+          <h3 class="text-lg font-semibold text-green-400 mb-1">Households</h3>
+          <p class="text-gray-300 text-sm">Manage shared grocery units.</p>
         </a>
 
         <a
           href="/recipes.html"
-          class="p-6 bg-white border rounded-xl shadow-sm hover:shadow-md transition"
+          class="p-6 bg-gray-800 rounded-xl shadow-lg hover:bg-gray-700 transition"
         >
-          <h3 class="text-lg font-semibold mb-2 text-green-700">Recipes</h3>
-          <p class="text-sm text-gray-600">
-            Explore recipe suggestions using pantry data and API results.
-          </p>
+          <h3 class="text-lg font-semibold text-green-400 mb-1">Recipes</h3>
+          <p class="text-gray-300 text-sm">Search foods & get nutrition.</p>
         </a>
       </section>
     </main>
