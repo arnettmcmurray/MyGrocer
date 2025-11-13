@@ -3,6 +3,14 @@
     {
       "source": "/api/v1/(.*)",
       "destination": "https://mygrocer-backend.onrender.com/api/v1/$1"
+    },
+    {
+      "source": "/",
+      "destination": "/frontend_live/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/frontend_live/$1"
     }
   ]
 }
