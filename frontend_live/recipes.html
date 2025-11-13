@@ -19,10 +19,12 @@
       href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     />
   </head>
+
   <body>
     <main class="container" x-data="recipesPage()">
       <h2>Find Foods & Nutrition</h2>
 
+      <!-- NORMAL SEARCH -->
       <form @submit.prevent="search()">
         <input
           x-model="q"
@@ -31,35 +33,50 @@
         <button :disabled="!q || loading" :aria-busy="loading">Search</button>
       </form>
 
+      <!-- AUTO FROM PANTRY -->
+      <button
+        @click="autoFromPantry()"
+        :disabled="loading"
+        :aria-busy="loading"
+        style="margin-top: 0.5rem"
+      >
+        Suggest From My Pantry
+      </button>
+
+      <!-- ERROR + LOADING -->
       <div
         role="alert"
-        style="color: crimson"
+        style="color: crimson; margin-top: 0.75rem"
         x-show="error"
         x-text="error"
       ></div>
+
       <p x-show="loading">Searching…</p>
 
-      <div class="grid">
+      <!-- RESULTS GRID -->
+      <div class="grid" style="margin-top: 1rem">
         <template x-for="r in results" :key="r.name + r.brand">
           <article>
             <header>
               <strong x-text="r.name"></strong>
               <small x-text="r.brand ? ` · ${r.brand}` : ''"></small>
             </header>
+
             <img x-show="r.img" :src="r.img" alt="" style="max-height: 100px" />
+
             <p>
               <span
                 x-text="r.kcal !== null ? `kcal/100g: ${r.kcal}` : 'kcal: n/a'"
-              ></span
-              ><br />
+              ></span>
+              <br />
               <span
                 x-text="r.protein !== null ? `protein/100g: ${r.protein}g` : 'protein: n/a'"
-              ></span
-              ><br />
+              ></span>
+              <br />
               <span
                 x-text="r.fat !== null ? `fat/100g: ${r.fat}g` : 'fat: n/a'"
-              ></span
-              ><br />
+              ></span>
+              <br />
               <span
                 x-text="r.carbs !== null ? `carbs/100g: ${r.carbs}g` : 'carbs: n/a'"
               ></span>

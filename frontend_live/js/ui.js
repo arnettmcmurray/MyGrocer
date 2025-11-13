@@ -1,6 +1,6 @@
 console.log("UI script loaded");
 
-// token helpers (use STORE_KEYS from config.js)
+// token helpers
 function saveToken(token) {
   localStorage.setItem(window.STORE_KEYS.token, token);
 }
@@ -19,7 +19,6 @@ function getUser() {
 }
 
 async function api(path, { method = "GET", body = null, auth = true } = {}) {
-  // prefer global API helper if present
   if (window.API && typeof window.API.req === "function") {
     return window.API.req(path.replace(/^\//, ""), method, body, auth);
   }
@@ -57,7 +56,7 @@ function homePage() {
         this.statusMsg = res.ok
           ? "Backend reachable"
           : `Backend returned ${res.status}`;
-      } catch (e) {
+      } catch {
         this.statusMsg = "Backend unreachable";
       }
     },
@@ -76,13 +75,13 @@ function authPage() {
     loading: false,
     error: "",
     success: "",
+
     toggleMode() {
       this.mode = this.mode === "login" ? "register" : "login";
       this.error = "";
       this.success = "";
     },
 
-    // robust submit: prefer window.API methods (they set token), otherwise fall back to api()
     async submit() {
       this.loading = true;
       this.error = "";
@@ -125,7 +124,6 @@ function authPage() {
         });
       }
 
-      // defensive token extraction
       const token =
         out?.access_token ||
         out?.token ||
@@ -145,6 +143,7 @@ function pantryPage() {
     loading: true,
     error: "",
     items: [],
+
     async init() {
       if (!getToken()) {
         window.location.href = "./login.html";
@@ -158,6 +157,7 @@ function pantryPage() {
         this.loading = false;
       }
     },
+
     async addItem(name) {
       if (!name) return;
       try {
@@ -170,6 +170,7 @@ function pantryPage() {
         alert(e.message || "Failed to add.");
       }
     },
+
     async removeItem(id) {
       try {
         await api(`/pantry/${id}`, { method: "DELETE" });
@@ -187,11 +188,13 @@ function recipesPage() {
     loading: false,
     error: "",
     results: [],
+
     async search() {
       this.error = "";
       this.results = [];
       if (!this.q?.trim()) return;
       this.loading = true;
+
       try {
         const url = new URL("https://world.openfoodfacts.org/api/v2/search");
         url.searchParams.set("page_size", "20");
@@ -206,6 +209,7 @@ function recipesPage() {
         const r = await fetch(url.toString());
         const data = await r.json();
         const products = data?.products || [];
+
         this.results = products.map((p) => ({
           name: p.product_name || "(no name)",
           brand: p.brands || "",
@@ -215,8 +219,55 @@ function recipesPage() {
           carbs: p.nutriments?.["carbohydrates_100g"] ?? null,
           img: p.image_small_url || "",
         }));
-      } catch (e) {
+      } catch {
         this.error = "Search failed.";
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async autoFromPantry() {
+      this.error = "";
+      this.results = [];
+      this.loading = true;
+
+      try {
+        const pantry = await api("/pantry");
+
+        if (!Array.isArray(pantry) || pantry.length === 0) {
+          this.error = "Your pantry is empty.";
+          this.loading = false;
+          return;
+        }
+
+        const combined = pantry.map((i) => i.name).join(" ");
+        this.q = combined;
+
+        const url = new URL("https://world.openfoodfacts.org/api/v2/search");
+        url.searchParams.set("page_size", "20");
+        url.searchParams.set(
+          "fields",
+          "product_name,brands,nutriments,image_small_url"
+        );
+        url.searchParams.set("nutrition_data", "on");
+        url.searchParams.set("sort_by", "popularity_key");
+        url.searchParams.set("search_terms", combined);
+
+        const r = await fetch(url.toString());
+        const data = await r.json();
+        const products = data?.products || [];
+
+        this.results = products.map((p) => ({
+          name: p.product_name || "(no name)",
+          brand: p.brands || "",
+          kcal: p.nutriments?.["energy-kcal_100g"] ?? null,
+          protein: p.nutriments?.["proteins_100g"] ?? null,
+          fat: p.nutriments?.["fat_100g"] ?? null,
+          carbs: p.nutriments?.["carbohydrates_100g"] ?? null,
+          img: p.image_small_url || "",
+        }));
+      } catch {
+        this.error = "Failed to generate suggestions from pantry.";
       } finally {
         this.loading = false;
       }
@@ -228,13 +279,15 @@ function householdsPage() {
   return {
     name: "",
     households: [],
+
     async init() {
       try {
         this.households = await api("/households");
-      } catch (e) {
+      } catch {
         this.households = [];
       }
     },
+
     async addHousehold() {
       if (!this.name?.trim()) return;
       try {
@@ -244,15 +297,16 @@ function householdsPage() {
         });
         this.households.push(h);
         this.name = "";
-      } catch (e) {
+      } catch {
         alert("Failed to add household");
       }
     },
+
     async removeHousehold(id) {
       try {
         await api(`/households/${id}`, { method: "DELETE" });
         this.households = this.households.filter((h) => h.id !== id);
-      } catch (e) {
+      } catch {
         alert("Failed to delete");
       }
     },
@@ -274,25 +328,17 @@ function topNav() {
   };
 }
 
-// expose factories globally for Alpine
+// expose factories globally
 console.log("ui.js loaded (expose step)");
 try {
-  if (typeof authPage === "function") window.authPage = authPage;
-  if (typeof pantryPage === "function") window.pantryPage = pantryPage;
-  if (typeof recipesPage === "function") window.recipesPage = recipesPage;
-  if (typeof homePage === "function") window.homePage = homePage;
-  if (typeof householdsPage === "function")
-    window.householdsPage = householdsPage;
-  if (typeof topNav === "function") window.topNav = topNav;
+  window.authPage = authPage;
+  window.pantryPage = pantryPage;
+  window.recipesPage = recipesPage;
+  window.homePage = homePage;
+  window.householdsPage = householdsPage;
+  window.topNav = topNav;
 
-  console.log("ui.js: exposed:", {
-    authPage: !!window.authPage,
-    pantryPage: !!window.pantryPage,
-    recipesPage: !!window.recipesPage,
-    homePage: !!window.homePage,
-    householdsPage: !!window.householdsPage,
-    topNav: !!window.topNav,
-  });
+  console.log("ui.js: exposed OK");
 } catch (e) {
   console.warn("ui.js: expose failed", e);
 }
