@@ -1,7 +1,6 @@
 console.log("UI script loaded");
-window.authPage && console.log("authPage visible");
 
-// helper token storage helpers
+// token helpers (use STORE_KEYS from config.js)
 function saveToken(token) {
   localStorage.setItem(window.STORE_KEYS.token, token);
 }
@@ -20,9 +19,8 @@ function getUser() {
 }
 
 async function api(path, { method = "GET", body = null, auth = true } = {}) {
-  // prefer window.API.req if available (api.js); fallback to fetch
+  // prefer global API helper if present
   if (window.API && typeof window.API.req === "function") {
-    // map flags to API.req signature (path without leading slash)
     return window.API.req(path.replace(/^\//, ""), method, body, auth);
   }
   const headers = { "Content-Type": "application/json" };
@@ -50,8 +48,6 @@ async function api(path, { method = "GET", body = null, auth = true } = {}) {
 }
 
 // ===== pages =====
-
-// minimal home page factory so index.html x-data won't break
 function homePage() {
   return {
     statusMsg: "unknown",
@@ -71,10 +67,9 @@ function homePage() {
   };
 }
 
-// login.html / register flow
 function authPage() {
   return {
-    mode: "login", // "login" | "register"
+    mode: "login",
     email: "",
     password: "",
     name: "",
@@ -86,39 +81,58 @@ function authPage() {
       this.error = "";
       this.success = "";
     },
+
+    // robust submit: prefer window.API methods (they set token), otherwise fall back to api()
     async submit() {
       this.loading = true;
       this.error = "";
       this.success = "";
       try {
         if (this.mode === "register") {
-          const out = await api("/auth/register", {
-            method: "POST",
-            auth: false,
-            body: {
-              name: this.name,
-              email: this.email,
-              password: this.password,
-            },
-          });
+          if (window.API && typeof window.API.register === "function") {
+            await window.API.register(this.name, this.email, this.password);
+          } else {
+            await api("/auth/register", {
+              method: "POST",
+              auth: false,
+              body: {
+                name: this.name,
+                email: this.email,
+                password: this.password,
+              },
+            });
+          }
           this.success = "Registered. You can log in now.";
         } else {
           await this.loginInternal();
         }
       } catch (e) {
-        this.error = e.message || "Failed.";
+        this.error = (e && e.message) || "Failed.";
       } finally {
         this.loading = false;
       }
     },
+
     async loginInternal() {
-      const out = await api("/auth/login", {
-        method: "POST",
-        auth: false,
-        body: { email: this.email, password: this.password },
-      });
-      if (!out || !out.access_token) throw new Error("No token returned.");
-      saveToken(out.access_token);
+      let out;
+      if (window.API && typeof window.API.login === "function") {
+        out = await window.API.login(this.email, this.password);
+      } else {
+        out = await api("/auth/login", {
+          method: "POST",
+          auth: false,
+          body: { email: this.email, password: this.password },
+        });
+      }
+
+      // defensive token extraction
+      const token =
+        out?.access_token ||
+        out?.token ||
+        out?.accessToken ||
+        (out?.data && out.data.token);
+      if (!token) throw new Error("No token returned.");
+      saveToken(token);
       if (out.user) saveUser(out.user);
       this.success = "Logged in.";
       window.location.href = "./pantry.html";
@@ -126,7 +140,6 @@ function authPage() {
   };
 }
 
-// pantry.html
 function pantryPage() {
   return {
     loading: true,
@@ -168,7 +181,6 @@ function pantryPage() {
   };
 }
 
-// recipes.html — OpenFoodFacts demo (no API key)
 function recipesPage() {
   return {
     q: "",
@@ -212,7 +224,6 @@ function recipesPage() {
   };
 }
 
-// households page simple factory (keeps existing markup safe)
 function householdsPage() {
   return {
     name: "",
@@ -248,13 +259,14 @@ function householdsPage() {
   };
 }
 
-// simple header component
 function topNav() {
   return {
     get loggedIn() {
       return !!getToken();
     },
     logout() {
+      if (window.API && typeof window.API.clearToken === "function")
+        window.API.clearToken();
       localStorage.removeItem(window.STORE_KEYS.token);
       localStorage.removeItem(window.STORE_KEYS.user);
       window.location.href = "./login.html";
@@ -262,7 +274,7 @@ function topNav() {
   };
 }
 
-// --- expose existing page factories to global scope for Alpine (append) ---
+// expose factories globally for Alpine
 console.log("ui.js loaded (expose step)");
 try {
   if (typeof authPage === "function") window.authPage = authPage;

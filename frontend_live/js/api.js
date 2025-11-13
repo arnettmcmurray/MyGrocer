@@ -5,6 +5,7 @@ window.API = (function () {
     return localStorage.getItem(window.STORE_KEYS.token);
   }
   function setToken(t) {
+    if (!t) return;
     localStorage.setItem(window.STORE_KEYS.token, t);
   }
   function clearToken() {
@@ -21,22 +22,35 @@ window.API = (function () {
       body: data ? JSON.stringify(data) : null,
       credentials: "include",
     });
-    if (!res.ok) {
-      const text = await res.text();
-      console.error("API request failed:", res.status, path, text);
-      throw new Error(text || `HTTP ${res.status}`);
-    }
+    const raw = await res.text();
+    let body = null;
     try {
-      return await res.json();
+      body = raw ? JSON.parse(raw) : null;
     } catch {
-      return null;
+      body = raw;
     }
+
+    if (!res.ok) {
+      // expose helpful message
+      const msg =
+        (body && (body.detail || body.message)) || `HTTP ${res.status}`;
+      console.error("API request failed:", method, url, res.status, body);
+      throw new Error(msg);
+    }
+
+    return body;
   }
 
   return {
     login: async (email, password) => {
       const r = await req("auth/login", "POST", { email, password }, false);
-      if (r?.access_token) setToken(r.access_token);
+      // defensive token extraction
+      const token =
+        r?.access_token ||
+        r?.token ||
+        r?.accessToken ||
+        (r?.data && r.data.token);
+      if (token) setToken(token);
       return r;
     },
     register: async (name, email, password) => {
@@ -51,5 +65,7 @@ window.API = (function () {
         `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`
       ).then((r) => r.json()),
     req,
+    setToken,
+    clearToken,
   };
 })();
