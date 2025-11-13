@@ -19,9 +19,6 @@ function getUser() {
 }
 
 async function api(path, { method = "GET", body = null, auth = true } = {}) {
-  if (window.API && typeof window.API.req === "function") {
-    return window.API.req(path.replace(/^\//, ""), method, body, auth);
-  }
   const headers = { "Content-Type": "application/json" };
   if (auth) {
     const t = getToken();
@@ -88,19 +85,15 @@ function authPage() {
       this.success = "";
       try {
         if (this.mode === "register") {
-          if (window.API && typeof window.API.register === "function") {
-            await window.API.register(this.name, this.email, this.password);
-          } else {
-            await api("/auth/register", {
-              method: "POST",
-              auth: false,
-              body: {
-                name: this.name,
-                email: this.email,
-                password: this.password,
-              },
-            });
-          }
+          await api("/auth/register", {
+            method: "POST",
+            auth: false,
+            body: {
+              name: this.name,
+              email: this.email,
+              password: this.password,
+            },
+          });
           this.success = "Registered. You can log in now.";
         } else {
           await this.loginInternal();
@@ -113,26 +106,16 @@ function authPage() {
     },
 
     async loginInternal() {
-      let out;
-      if (window.API && typeof window.API.login === "function") {
-        out = await window.API.login(this.email, this.password);
-      } else {
-        out = await api("/auth/login", {
-          method: "POST",
-          auth: false,
-          body: { email: this.email, password: this.password },
-        });
-      }
+      const out = await api("/auth/login", {
+        method: "POST",
+        auth: false,
+        body: { email: this.email, password: this.password },
+      });
 
-      const token =
-        out?.access_token ||
-        out?.token ||
-        out?.accessToken ||
-        (out?.data && out.data.token);
+      const token = out?.access_token || out?.token;
       if (!token) throw new Error("No token returned.");
       saveToken(token);
       if (out.user) saveUser(out.user);
-      this.success = "Logged in.";
       window.location.href = "./pantry.html";
     },
   };
@@ -144,7 +127,7 @@ function pantryPage() {
     pantry: [],
 
     async init() {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       if (!token) return (window.location.href = "/login.html");
 
       const res = await fetch(`${API_BASE}/pantry`, {
@@ -157,11 +140,11 @@ function pantryPage() {
     async addItem() {
       const name = document.getElementById("itemName").value.trim();
       const quantity = parseInt(document.getElementById("itemQty").value) || 1;
-      const expiration_date = document.getElementById("itemExp").value;
+      const expiration_date = document.getElementById("itemExp").value || null;
 
       if (!name) return;
 
-      const token = localStorage.getItem("token");
+      const token = getToken();
 
       const payload = { name, quantity };
       if (expiration_date) payload.expiration_date = expiration_date;
@@ -175,18 +158,18 @@ function pantryPage() {
         body: JSON.stringify(payload),
       });
 
-      if (res.ok) {
-        const newItem = await res.json();
-        this.pantry.push(newItem);
+      if (!res.ok) return;
 
-        document.getElementById("itemName").value = "";
-        document.getElementById("itemQty").value = "";
-        document.getElementById("itemExp").value = "";
-      }
+      const newItem = await res.json();
+      this.pantry.push(newItem);
+
+      document.getElementById("itemName").value = "";
+      document.getElementById("itemQty").value = "";
+      document.getElementById("itemExp").value = "";
     },
 
     async removeItem(id) {
-      const token = localStorage.getItem("token");
+      const token = getToken();
 
       const res = await fetch(`${API_BASE}/pantry/${id}`, {
         method: "DELETE",
@@ -199,7 +182,7 @@ function pantryPage() {
     },
 
     logout() {
-      localStorage.removeItem("token");
+      localStorage.removeItem(window.STORE_KEYS.token);
       window.location.href = "/login.html";
     },
   };
@@ -256,7 +239,6 @@ function recipesPage() {
 
       try {
         const pantry = await api("/pantry");
-
         if (!Array.isArray(pantry) || pantry.length === 0) {
           this.error = "Your pantry is empty.";
           this.loading = false;
@@ -342,8 +324,6 @@ function topNav() {
       return !!getToken();
     },
     logout() {
-      if (window.API && typeof window.API.clearToken === "function")
-        window.API.clearToken();
       localStorage.removeItem(window.STORE_KEYS.token);
       localStorage.removeItem(window.STORE_KEYS.user);
       window.location.href = "./login.html";
@@ -351,8 +331,6 @@ function topNav() {
   };
 }
 
-// expose factories globally
-console.log("ui.js loaded (expose step)");
 try {
   window.authPage = authPage;
   window.pantryPage = pantryPage;
@@ -360,8 +338,6 @@ try {
   window.homePage = homePage;
   window.householdsPage = householdsPage;
   window.topNav = topNav;
-
-  console.log("ui.js: exposed OK");
 } catch (e) {
   console.warn("ui.js: expose failed", e);
 }
