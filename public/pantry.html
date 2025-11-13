@@ -14,7 +14,12 @@
     ></script>
   </head>
 
-  <body class="bg-gray-900 text-gray-100" x-data="pantryPage()" x-init="init()">
+  <!-- GRADIENT ENABLED -->
+  <body
+    class="bg-gradient-to-b from-gray-900 to-gray-800 text-gray-100"
+    x-data="pantryPage()"
+    x-init="init()"
+  >
     <header
       class="border-b bg-gray-800 shadow-sm text-gray-100"
       x-data="topNav()"
@@ -22,8 +27,9 @@
       <div
         class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center"
       >
-        <h1 class="text-xl font-semibold">MyGrocer</h1>
-        <nav class="space-x-6">
+        <h1 class="text-xl font-semibold text-green-400">MyGrocer</h1>
+
+        <nav class="space-x-6 text-sm">
           <a href="/index.html" class="hover:underline">Home</a>
           <a href="/recipes.html" class="hover:underline">Recipes</a>
           <a href="/pantry.html" class="font-semibold text-blue-400">Pantry</a>
@@ -35,9 +41,13 @@
       </div>
     </header>
 
-    <main class="max-w-3xl mx-auto mt-10 p-6 bg-gray-800 rounded-lg shadow-lg">
+    <!-- MAIN CONTAINER -->
+    <main
+      class="max-w-3xl mx-auto mt-10 p-6 bg-gray-800 rounded-xl shadow-lg space-y-6"
+    >
       <h2 class="text-2xl font-semibold mb-4">Your Pantry</h2>
 
+      <!-- INPUT ROW -->
       <div class="flex items-center space-x-3 mb-6">
         <input
           id="itemName"
@@ -68,10 +78,11 @@
         </button>
       </div>
 
+      <!-- LIST -->
       <ul class="space-y-3">
         <template x-for="item in pantry" :key="item.id">
           <li
-            class="flex justify-between items-center bg-gray-700 px-4 py-3 rounded"
+            class="flex justify-between items-center bg-gray-700 px-4 py-3 rounded shadow"
           >
             <div>
               <p class="font-semibold" x-text="item.name"></p>
