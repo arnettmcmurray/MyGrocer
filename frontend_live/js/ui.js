@@ -138,46 +138,69 @@ function authPage() {
   };
 }
 
+// === PANTRY PAGE ===
 function pantryPage() {
   return {
-    loading: true,
-    error: "",
-    items: [],
+    pantry: [],
 
     async init() {
-      if (!getToken()) {
-        window.location.href = "./login.html";
-        return;
-      }
-      try {
-        this.items = await api("/pantry");
-      } catch (e) {
-        this.error = e.message || "Failed to load pantry.";
-      } finally {
-        this.loading = false;
-      }
+      const token = localStorage.getItem("token");
+      if (!token) return (window.location.href = "/login.html");
+
+      const res = await fetch(`${API_BASE}/pantry`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      this.pantry = res.ok ? await res.json() : [];
     },
 
-    async addItem(name) {
+    async addItem() {
+      const name = document.getElementById("itemName").value.trim();
+      const quantity = parseInt(document.getElementById("itemQty").value) || 1;
+      const expiration_date = document.getElementById("itemExp").value;
+
       if (!name) return;
-      try {
-        const created = await api("/pantry", {
-          method: "POST",
-          body: { name },
-        });
-        this.items.push(created);
-      } catch (e) {
-        alert(e.message || "Failed to add.");
+
+      const token = localStorage.getItem("token");
+
+      const payload = { name, quantity };
+      if (expiration_date) payload.expiration_date = expiration_date;
+
+      const res = await fetch(`${API_BASE}/pantry`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        const newItem = await res.json();
+        this.pantry.push(newItem);
+
+        document.getElementById("itemName").value = "";
+        document.getElementById("itemQty").value = "";
+        document.getElementById("itemExp").value = "";
       }
     },
 
     async removeItem(id) {
-      try {
-        await api(`/pantry/${id}`, { method: "DELETE" });
-        this.items = this.items.filter((i) => i.id !== id);
-      } catch (e) {
-        alert(e.message || "Failed to remove.");
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(`${API_BASE}/pantry/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        this.pantry = this.pantry.filter((item) => item.id !== id);
       }
+    },
+
+    logout() {
+      localStorage.removeItem("token");
+      window.location.href = "/login.html";
     },
   };
 }
