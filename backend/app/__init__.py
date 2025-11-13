@@ -1,6 +1,6 @@
 import re
 import time
-from flask import Flask
+from flask import Flask, request, make_response
 from .config import DevConfig
 from flask_cors import CORS
 from .extensions import db, jwt, migrate
@@ -30,32 +30,52 @@ def create_app(config_class=DevConfig) -> Flask:
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config_class)
 
+    # Allow routes to match with or without trailing slashes to avoid redirects
+    # that break browser preflight (OPTIONS).
+    app.url_map.strict_slashes = False
+
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
 
     # === CORS setup ===
-    # allow localhost dev ports, the main production host, and vercel preview subdomains
+    # allow local dev ports, the main production host, and vercel preview subdomains
     CORS(
-    app,
-    resources={
-        r"/api/*": {
-            "origins": [
-                # local dev origins
-                "http://localhost:5173",
-                "http://localhost:5500",
-                "http://localhost:3000",
-                "http://127.0.0.1:5500",
-                # production frontends
-                "https://mygrocer.vercel.app",
-                "https://mygrocer-backend.onrender.com",
-                # regex to allow bracketed IPv6 preview & other localhost variants
-                re.compile(r"^https?:\/\/(\[.*\]|localhost|127\.0\.0\.1)(:\d+)?$")
-            ]
-        }
-    },
-    supports_credentials=True,
-)
+        app,
+        resources={
+            r"/api/*": {
+                "origins": [
+                    # local dev origins
+                    "http://localhost:5173",
+                    "http://localhost:5500",
+                    "http://localhost:3000",
+                    "http://127.0.0.1:5500",
+                    # production frontends
+                    "https://mygrocer.vercel.app",
+                    "https://mygrocer-backend.onrender.com",
+                    # allow bracketed IPv6 preview & other localhost variants
+                    re.compile(r"^https?:\/\/(\[.*\]|localhost|127\.0\.0\.1)(:\d+)?$"),
+                    # allow any vercel preview subdomain (e.g. https://my-grocer-xxxx.vercel.app)
+                    re.compile(r"^https:\/\/.*\.vercel\.app$")
+                ]
+            }
+        },
+        supports_credentials=True,
+    )
+
+    # === Short-circuit OPTIONS preflight so auth/blueprints don't return 403 ===
+    # This ensures preflight requests are answered before any auth/before_request checks.
+    @app.before_request
+    def _allow_preflight_requests():
+        if request.method == "OPTIONS":
+            resp = make_response("", 200)
+            origin = request.headers.get("Origin", "*")
+            acr_headers = request.headers.get("Access-Control-Request-Headers", "Content-Type,Authorization")
+            resp.headers["Access-Control-Allow-Origin"] = origin
+            resp.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+            resp.headers["Access-Control-Allow-Headers"] = acr_headers
+            resp.headers["Access-Control-Allow-Credentials"] = "true"
+            return resp
 
     _register_bps(app)
 
