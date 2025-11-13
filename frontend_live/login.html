@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>MyGrocer — Login/Register</title>
 
+    <script defer src="./js/config.js"></script>
+    <script defer src="./js/ui.js"></script>
     <script
       defer
       src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
     ></script>
-    <script defer src="/frontend_live/js/config.js"></script>
-    <script defer src="/frontend_live/js/ui.js"></script>
 
     <link
       rel="stylesheet"
@@ -21,9 +21,9 @@
     <main class="container" x-data="authPage()">
       <h1>MyGrocer</h1>
       <nav>
-        <a href="/frontend_live/index.html">Home</a>
-        <a href="/frontend_live/pantry.html">Pantry</a>
-        <a href="/frontend_live/recipes.html">Recipes</a>
+        <a href="./index.html">Home</a>
+        <a href="./pantry.html">Pantry</a>
+        <a href="./recipes.html">Recipes</a>
         <a href="#" aria-disabled="true">Delivery (coming soon)</a>
       </nav>
 
@@ -35,6 +35,7 @@
             >Name <input type="text" x-model="name" placeholder="Your name"
           /></label>
         </div>
+
         <label
           >Email
           <input type="email" x-model="email" placeholder="you@example.com"

@@ -1,6 +1,6 @@
 console.log("UI script loaded");
-window.authPage && console.log("authPage visible");
 
+// token helpers (use STORE_KEYS from config.js)
 function saveToken(token) {
   localStorage.setItem(window.STORE_KEYS.token, token);
 }
@@ -17,7 +17,12 @@ function getUser() {
     return null;
   }
 }
+
 async function api(path, { method = "GET", body = null, auth = true } = {}) {
+  // prefer global API helper if present
+  if (window.API && typeof window.API.req === "function") {
+    return window.API.req(path.replace(/^\//, ""), method, body, auth);
+  }
   const headers = { "Content-Type": "application/json" };
   if (auth) {
     const t = getToken();
@@ -43,11 +48,28 @@ async function api(path, { method = "GET", body = null, auth = true } = {}) {
 }
 
 // ===== pages =====
+function homePage() {
+  return {
+    statusMsg: "unknown",
+    async init() {
+      try {
+        const res = await fetch(window.API_BASE);
+        this.statusMsg = res.ok
+          ? "Backend reachable"
+          : `Backend returned ${res.status}`;
+      } catch (e) {
+        this.statusMsg = "Backend unreachable";
+      }
+    },
+    checkHealth() {
+      this.init();
+    },
+  };
+}
 
-// login.html / register flow
 function authPage() {
   return {
-    mode: "login", // "login" | "register"
+    mode: "login",
     email: "",
     password: "",
     name: "",
@@ -59,59 +81,73 @@ function authPage() {
       this.error = "";
       this.success = "";
     },
+
+    // robust submit: prefer window.API methods (they set token), otherwise fall back to api()
     async submit() {
       this.loading = true;
       this.error = "";
       this.success = "";
       try {
         if (this.mode === "register") {
-          const out = await api("/auth/register", {
-            method: "POST",
-            auth: false,
-            body: {
-              name: this.name,
-              email: this.email,
-              password: this.password,
-            },
-          });
+          if (window.API && typeof window.API.register === "function") {
+            await window.API.register(this.name, this.email, this.password);
+          } else {
+            await api("/auth/register", {
+              method: "POST",
+              auth: false,
+              body: {
+                name: this.name,
+                email: this.email,
+                password: this.password,
+              },
+            });
+          }
           this.success = "Registered. You can log in now.";
-          // optional auto-login:
-          // await this.loginInternal();
         } else {
           await this.loginInternal();
         }
       } catch (e) {
-        this.error = e.message || "Failed.";
+        this.error = (e && e.message) || "Failed.";
       } finally {
         this.loading = false;
       }
     },
+
     async loginInternal() {
-      const out = await api("/auth/login", {
-        method: "POST",
-        auth: false,
-        body: { email: this.email, password: this.password },
-      });
-      if (!out || !out.access_token) throw new Error("No token returned.");
-      saveToken(out.access_token);
+      let out;
+      if (window.API && typeof window.API.login === "function") {
+        out = await window.API.login(this.email, this.password);
+      } else {
+        out = await api("/auth/login", {
+          method: "POST",
+          auth: false,
+          body: { email: this.email, password: this.password },
+        });
+      }
+
+      // defensive token extraction
+      const token =
+        out?.access_token ||
+        out?.token ||
+        out?.accessToken ||
+        (out?.data && out.data.token);
+      if (!token) throw new Error("No token returned.");
+      saveToken(token);
       if (out.user) saveUser(out.user);
       this.success = "Logged in.";
-      // redirect to pantry
-      window.location.href = "/frontend_live/pantry.html";
+      window.location.href = "./pantry.html";
     },
   };
 }
 
-// pantry.html
 function pantryPage() {
   return {
     loading: true,
     error: "",
     items: [],
     async init() {
-      // guard
       if (!getToken()) {
-        window.location.href = "/frontend_live/login.html";
+        window.location.href = "./login.html";
         return;
       }
       try {
@@ -145,7 +181,6 @@ function pantryPage() {
   };
 }
 
-// recipes.html — OpenFoodFacts demo (no API key)
 function recipesPage() {
   return {
     q: "",
@@ -158,8 +193,6 @@ function recipesPage() {
       if (!this.q?.trim()) return;
       this.loading = true;
       try {
-        // OpenFoodFacts v2 search (free, CORS-friendly)
-        // fields kept tight to avoid payload bloat
         const url = new URL("https://world.openfoodfacts.org/api/v2/search");
         url.searchParams.set("page_size", "20");
         url.searchParams.set(
@@ -173,7 +206,6 @@ function recipesPage() {
         const r = await fetch(url.toString());
         const data = await r.json();
         const products = data?.products || [];
-        // Normalize a narrow shape for the UI
         this.results = products.map((p) => ({
           name: p.product_name || "(no name)",
           brand: p.brands || "",
@@ -192,26 +224,65 @@ function recipesPage() {
   };
 }
 
-// simple header component (optional)
+function householdsPage() {
+  return {
+    name: "",
+    households: [],
+    async init() {
+      try {
+        this.households = await api("/households");
+      } catch (e) {
+        this.households = [];
+      }
+    },
+    async addHousehold() {
+      if (!this.name?.trim()) return;
+      try {
+        const h = await api("/households", {
+          method: "POST",
+          body: { name: this.name },
+        });
+        this.households.push(h);
+        this.name = "";
+      } catch (e) {
+        alert("Failed to add household");
+      }
+    },
+    async removeHousehold(id) {
+      try {
+        await api(`/households/${id}`, { method: "DELETE" });
+        this.households = this.households.filter((h) => h.id !== id);
+      } catch (e) {
+        alert("Failed to delete");
+      }
+    },
+  };
+}
+
 function topNav() {
   return {
     get loggedIn() {
       return !!getToken();
     },
     logout() {
+      if (window.API && typeof window.API.clearToken === "function")
+        window.API.clearToken();
       localStorage.removeItem(window.STORE_KEYS.token);
       localStorage.removeItem(window.STORE_KEYS.user);
-      window.location.href = "/frontend_live/login.html";
+      window.location.href = "./login.html";
     },
   };
 }
-// --- expose existing page factories to global scope for Alpine (append) ---
+
+// expose factories globally for Alpine
 console.log("ui.js loaded (expose step)");
 try {
   if (typeof authPage === "function") window.authPage = authPage;
   if (typeof pantryPage === "function") window.pantryPage = pantryPage;
   if (typeof recipesPage === "function") window.recipesPage = recipesPage;
   if (typeof homePage === "function") window.homePage = homePage;
+  if (typeof householdsPage === "function")
+    window.householdsPage = householdsPage;
   if (typeof topNav === "function") window.topNav = topNav;
 
   console.log("ui.js: exposed:", {
@@ -219,6 +290,7 @@ try {
     pantryPage: !!window.pantryPage,
     recipesPage: !!window.recipesPage,
     homePage: !!window.homePage,
+    householdsPage: !!window.householdsPage,
     topNav: !!window.topNav,
   });
 } catch (e) {

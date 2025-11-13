@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="en" x-data>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>MyGrocer — Pantry</title>
 
+    <script defer src="./js/config.js"></script>
+    <script defer src="./js/ui.js"></script>
     <script
       defer
       src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
     ></script>
-    <script defer src="/frontend_live/js/config.js"></script>
-    <script defer src="/frontend_live/js/ui.js"></script>
 
     <link
       rel="stylesheet"
@@ -24,8 +24,8 @@
           <li><strong>MyGrocer</strong></li>
         </ul>
         <ul>
-          <li><a href="/frontend_live/index.html">Home</a></li>
-          <li><a href="/frontend_live/recipes.html">Recipes</a></li>
+          <li><a href="./index.html">Home</a></li>
+          <li><a href="./recipes.html">Recipes</a></li>
           <li><a href="#" aria-disabled="true">Delivery (coming soon)</a></li>
           <li><button @click="logout" x-show="loggedIn">Logout</button></li>
         </ul>
