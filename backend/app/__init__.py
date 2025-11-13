@@ -36,23 +36,26 @@ def create_app(config_class=DevConfig) -> Flask:
 
     # === CORS setup ===
     # allow localhost dev ports, the main production host, and vercel preview subdomains
-    # NOTE: add any exact production origins you own to the list below.
     CORS(
-        app,
-        resources={
-            r"/api/*": {
-                "origins": [
-                    "http://localhost:5173",
-                    "http://localhost:5500",
-                    "http://localhost:3000",
-                    "https://mygrocer.vercel.app",
-                    "https://mygrocer-backend.onrender.com",
-                    re.compile(r"^https:\/\/.*\.vercel\.app$")
-                ]
-            }
-        },
-        supports_credentials=True,
-    )
+    app,
+    resources={
+        r"/api/*": {
+            "origins": [
+                # local dev origins
+                "http://localhost:5173",
+                "http://localhost:5500",
+                "http://localhost:3000",
+                "http://127.0.0.1:5500",
+                # production frontends
+                "https://mygrocer.vercel.app",
+                "https://mygrocer-backend.onrender.com",
+                # regex to allow bracketed IPv6 preview & other localhost variants
+                re.compile(r"^https?:\/\/(\[.*\]|localhost|127\.0\.0\.1)(:\d+)?$")
+            ]
+        }
+    },
+    supports_credentials=True,
+)
 
     _register_bps(app)
 
