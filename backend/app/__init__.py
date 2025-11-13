@@ -98,4 +98,9 @@ def create_app(config_class=DevConfig) -> Flask:
     def health():
         return {"ok": True}, 200
 
+    # === API Root for frontend healthcheck ===
+    @app.get("/api/v1/")
+    def api_root():
+        return {"status": "ok"}, 200
+
     return app
