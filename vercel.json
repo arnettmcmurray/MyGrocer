@@ -1,5 +1,4 @@
 {
-  "outputDirectory": "frontend_live",
   "rewrites": [
     {
       "source": "/api/v1/(.*)",
