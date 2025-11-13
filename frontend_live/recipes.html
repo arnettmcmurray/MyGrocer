@@ -7,88 +7,59 @@
 
     <link rel="icon" href="data:," />
 
-    <script defer src="./js/config.js"></script>
-    <script defer src="./js/ui.js"></script>
+    <script defer src="/js/config.js"></script>
+    <script defer src="/js/ui.js"></script>
     <script
       defer
       src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
     ></script>
-
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
-    />
   </head>
 
   <body>
     <main class="container" x-data="recipesPage()">
       <h2>Find Foods & Nutrition</h2>
 
-      <!-- NORMAL SEARCH -->
       <form @submit.prevent="search()">
-        <input
-          x-model="q"
-          placeholder="e.g., oatmeal, yogurt, chicken breast"
-        />
+        <input x-model="q" placeholder="e.g., yogurt, chicken breast" />
         <button :disabled="!q || loading" :aria-busy="loading">Search</button>
       </form>
 
-      <!-- AUTO FROM PANTRY -->
       <button
         @click="autoFromPantry()"
         :disabled="loading"
         :aria-busy="loading"
-        style="margin-top: 0.5rem"
       >
         Suggest From My Pantry
       </button>
 
-      <!-- ERROR + LOADING -->
       <div
         role="alert"
-        style="color: crimson; margin-top: 0.75rem"
+        style="color: crimson"
         x-show="error"
         x-text="error"
       ></div>
 
       <p x-show="loading">Searching…</p>
 
-      <!-- RESULTS GRID -->
       <div class="grid" style="margin-top: 1rem">
-        <template x-for="r in results" :key="r.name + r.brand">
+        <template x-for="r in results">
           <article>
-            <header>
-              <strong x-text="r.name"></strong>
-              <small x-text="r.brand ? ` · ${r.brand}` : ''"></small>
-            </header>
-
-            <img x-show="r.img" :src="r.img" alt="" style="max-height: 100px" />
-
+            <strong x-text="r.name"></strong>
+            <small x-text="r.brand ? ` · ${r.brand}` : ''"></small>
+            <img x-show="r.img" :src="r.img" style="max-height: 100px" />
             <p>
-              <span
-                x-text="r.kcal !== null ? `kcal/100g: ${r.kcal}` : 'kcal: n/a'"
-              ></span>
-              <br />
-              <span
-                x-text="r.protein !== null ? `protein/100g: ${r.protein}g` : 'protein: n/a'"
-              ></span>
-              <br />
-              <span
-                x-text="r.fat !== null ? `fat/100g: ${r.fat}g` : 'fat: n/a'"
-              ></span>
-              <br />
-              <span
-                x-text="r.carbs !== null ? `carbs/100g: ${r.carbs}g` : 'carbs: n/a'"
-              ></span>
+              kcal: <span x-text="r.kcal ?? 'n/a'"></span><br />
+              protein: <span x-text="r.protein ?? 'n/a'"></span><br />
+              fat: <span x-text="r.fat ?? 'n/a'"></span><br />
+              carbs: <span x-text="r.carbs ?? 'n/a'"></span>
             </p>
           </article>
         </template>
       </div>
 
-      <nav style="margin-top: 1rem">
-        <a href="./index.html">Home</a>
-        <a href="./pantry.html">Pantry</a>
-        <a href="#" aria-disabled="true">Delivery (coming soon)</a>
+      <nav>
+        <a href="/index.html">Home</a>
+        <a href="/pantry.html">Pantry</a>
       </nav>
     </main>
   </body>

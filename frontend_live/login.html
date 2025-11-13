@@ -7,65 +7,37 @@
 
     <link rel="icon" href="data:," />
 
-    <script defer src="./js/config.js"></script>
-    <script defer src="./js/ui.js"></script>
+    <script defer src="/js/config.js"></script>
+    <script defer src="/js/ui.js"></script>
     <script
       defer
       src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
     ></script>
-
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
-    />
   </head>
+
   <body>
     <main class="container" x-data="authPage()">
       <h1>MyGrocer</h1>
       <nav>
-        <a href="./index.html">Home</a>
-        <a href="./pantry.html">Pantry</a>
-        <a href="./recipes.html">Recipes</a>
-        <a href="#" aria-disabled="true">Delivery (coming soon)</a>
+        <a href="/index.html">Home</a>
+        <a href="/pantry.html">Pantry</a>
+        <a href="/recipes.html">Recipes</a>
       </nav>
 
       <article>
         <h2 x-text="mode === 'login' ? 'Login' : 'Register'"></h2>
 
         <div x-show="mode === 'register'" style="margin-bottom: 0.5rem">
-          <label
-            >Name <input type="text" x-model="name" placeholder="Your name"
-          /></label>
+          <label>Name <input type="text" x-model="name" /></label>
         </div>
 
-        <label
-          >Email
-          <input type="email" x-model="email" placeholder="you@example.com"
-        /></label>
-        <label
-          >Password
-          <input type="password" x-model="password" placeholder="••••••••"
-        /></label>
+        <label>Email <input type="email" x-model="email" /></label>
+        <label>Password <input type="password" x-model="password" /></label>
 
-        <div
-          role="alert"
-          style="color: crimson"
-          x-show="error"
-          x-text="error"
-        ></div>
-        <div
-          role="status"
-          style="color: seagreen"
-          x-show="success"
-          x-text="success"
-        ></div>
+        <div style="color: crimson" x-show="error" x-text="error"></div>
+        <div style="color: seagreen" x-show="success" x-text="success"></div>
 
-        <button
-          @click="submit"
-          :aria-busy="loading"
-          :disabled="loading"
-          style="margin-top: 0.5rem"
-        >
+        <button @click="submit" :aria-busy="loading" :disabled="loading">
           <span
             x-show="!loading"
             x-text="mode === 'login' ? 'Login' : 'Create Account'"
@@ -73,13 +45,7 @@
           <span x-show="loading">Working…</span>
         </button>
 
-        <p style="margin-top: 0.5rem">
-          <a
-            href="#"
-            @click.prevent="toggleMode()"
-            x-text="mode === 'login' ? 'No account? Register' : 'Have an account? Login'"
-          ></a>
-        </p>
+        <p><a href="#" @click.prevent="toggleMode()">Switch</a></p>
       </article>
     </main>
   </body>
