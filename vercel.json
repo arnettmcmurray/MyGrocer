@@ -1,0 +1,10 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/api/v1/(.*)",
+      "destination": "https://mygrocer-backend.onrender.com/api/v1/$1"
+    }
+  ]
+}
