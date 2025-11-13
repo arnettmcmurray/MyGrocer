@@ -8,7 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="/js/config.js"></script>
     <script defer src="/js/ui.js"></script>
-
     <script
       defer
       src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
@@ -22,16 +21,10 @@
       >
         <h1 class="text-xl font-semibold text-green-400">MyGrocer</h1>
         <nav class="space-x-6 text-sm">
-          <a href="/frontend_live/index.html" class="hover:underline">Home</a>
-          <a href="/frontend_live/pantry.html" class="hover:underline"
-            >Pantry</a
-          >
-          <a href="/frontend_live/households.html" class="hover:underline"
-            >Households</a
-          >
-          <a href="/frontend_live/recipes.html" class="hover:underline"
-            >Recipes</a
-          >
+          <a href="/index.html" class="hover:underline">Home</a>
+          <a href="/pantry.html" class="hover:underline">Pantry</a>
+          <a href="/households.html" class="hover:underline">Households</a>
+          <a href="/recipes.html" class="hover:underline">Recipes</a>
           <button @click="logout" class="text-red-400 hover:underline">
             Logout
           </button>
@@ -59,7 +52,7 @@
 
       <section class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <a
-          href="/frontend_live/pantry.html"
+          href="/pantry.html"
           class="p-6 bg-gray-800 rounded-xl shadow-lg hover:bg-gray-700 transition"
         >
           <h3 class="text-lg font-semibold text-green-400 mb-1">Pantry</h3>
@@ -67,7 +60,7 @@
         </a>
 
         <a
-          href="/frontend_live/households.html"
+          href="/households.html"
           class="p-6 bg-gray-800 rounded-xl shadow-lg hover:bg-gray-700 transition"
         >
           <h3 class="text-lg font-semibold text-green-400 mb-1">Households</h3>
@@ -75,7 +68,7 @@
         </a>
 
         <a
-          href="/frontend_live/recipes.html"
+          href="/recipes.html"
           class="p-6 bg-gray-800 rounded-xl shadow-lg hover:bg-gray-700 transition"
         >
           <h3 class="text-lg font-semibold text-green-400 mb-1">Recipes</h3>
