@@ -15,12 +15,14 @@
     ></script>
   </head>
 
-  <body class="bg-gray-900 text-gray-100">
+  <body class="bg-gradient-to-b from-gray-900 to-gray-800 text-gray-100">
     <main
-      class="max-w-4xl mx-auto mt-10 p-6 bg-gray-800 rounded-lg shadow-lg"
+      class="max-w-4xl mx-auto mt-10 p-6 bg-gray-800 rounded-xl shadow-lg"
       x-data="recipesPage()"
     >
-      <h2 class="text-2xl font-semibold mb-6">Recipe Suggestions</h2>
+      <h2 class="text-2xl font-semibold mb-6 text-green-400">
+        Recipe Suggestions
+      </h2>
 
       <button
         @click="fromPantry()"
@@ -58,15 +60,16 @@
               :href="`https://spoonacular.com/recipes/${r.title.replace(/ /g,'-')}-${r.id}`"
               target="_blank"
               class="text-blue-400 hover:underline mt-3 inline-block"
-              >View Recipe</a
             >
+              View Recipe
+            </a>
           </article>
         </template>
       </div>
 
-      <nav class="mt-8 space-x-6">
-        <a href="/index.html" class="hover:underline text-blue-400">Home</a>
-        <a href="/pantry.html" class="hover:underline text-blue-400">Pantry</a>
+      <nav class="mt-8 space-x-6 text-sm text-gray-400">
+        <a href="/index.html" class="hover:underline">Home</a>
+        <a href="/pantry.html" class="hover:underline">Pantry</a>
       </nav>
     </main>
 

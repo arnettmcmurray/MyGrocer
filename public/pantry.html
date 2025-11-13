@@ -14,16 +14,12 @@
     ></script>
   </head>
 
-  <!-- GRADIENT ENABLED -->
   <body
     class="bg-gradient-to-b from-gray-900 to-gray-800 text-gray-100"
     x-data="pantryPage()"
     x-init="init()"
   >
-    <header
-      class="border-b bg-gray-800 shadow-sm text-gray-100"
-      x-data="topNav()"
-    >
+    <header class="border-b bg-gray-800 shadow-sm" x-data="topNav()">
       <div
         class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center"
       >
@@ -41,19 +37,17 @@
       </div>
     </header>
 
-    <!-- MAIN CONTAINER -->
     <main
       class="max-w-3xl mx-auto mt-10 p-6 bg-gray-800 rounded-xl shadow-lg space-y-6"
     >
       <h2 class="text-2xl font-semibold mb-4">Your Pantry</h2>
 
-      <!-- INPUT ROW -->
       <div class="flex items-center space-x-3 mb-6">
         <input
           id="itemName"
           type="text"
           placeholder="Item name..."
-          class="flex-1 px-4 py-2 rounded bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-500"
+          class="flex-1 px-4 py-2 rounded bg-gray-700 border border-gray-600"
         />
 
         <input
@@ -61,13 +55,13 @@
           type="number"
           placeholder="Qty"
           min="1"
-          class="w-20 px-3 py-2 rounded bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-500"
+          class="w-20 px-3 py-2 rounded bg-gray-700 border border-gray-600"
         />
 
         <input
           id="itemExp"
           type="date"
-          class="px-3 py-2 rounded bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-500"
+          class="px-3 py-2 rounded bg-gray-700 border border-gray-600"
         />
 
         <button
@@ -78,7 +72,6 @@
         </button>
       </div>
 
-      <!-- LIST -->
       <ul class="space-y-3">
         <template x-for="item in pantry" :key="item.id">
           <li
@@ -87,13 +80,27 @@
             <div>
               <p class="font-semibold" x-text="item.name"></p>
 
-              <p class="text-sm text-gray-300">
-                Qty: <span x-text="item.quantity"></span>
+              <p class="text-sm text-gray-300 flex items-center space-x-2">
+                <span>Qty: <span x-text="item.quantity"></span></span>
+
                 <template x-if="item.expiration_date">
-                  <span>
-                    • Exp: <span x-text="item.expiration_date"></span>
-                  </span>
+                  <span
+                    >• Exp: <span x-text="item.expiration_date"></span
+                  ></span>
                 </template>
+
+                <!-- Color-coded visual badge -->
+                <span
+                  class="text-xs px-2 py-0.5 rounded-full"
+                  :class="{
+                    'bg-green-700 text-green-200': item.name.toLowerCase().includes('broccoli') || item.name.toLowerCase().includes('lettuce') || item.name.toLowerCase().includes('spinach'),
+                    'bg-blue-700 text-blue-200': item.name.toLowerCase().includes('milk') || item.name.toLowerCase().includes('cheese') || item.name.toLowerCase().includes('yogurt'),
+                    'bg-red-700 text-red-200': item.name.toLowerCase().includes('chicken') || item.name.toLowerCase().includes('beef') || item.name.toLowerCase().includes('pork'),
+                    'bg-gray-600 text-gray-200': true
+                  }"
+                >
+                  Category
+                </span>
               </p>
             </div>
 
