@@ -1,7 +1,10 @@
+import re
+import time
 from flask import Flask
 from .config import DevConfig
 from flask_cors import CORS
 from .extensions import db, jwt, migrate
+from sqlalchemy.exc import OperationalError
 
 
 def _register_bps(app):
@@ -32,14 +35,19 @@ def create_app(config_class=DevConfig) -> Flask:
     jwt.init_app(app)
 
     # === CORS setup ===
+    # allow localhost dev ports, the main production host, and vercel preview subdomains
+    # NOTE: add any exact production origins you own to the list below.
     CORS(
         app,
         resources={
             r"/api/*": {
                 "origins": [
                     "http://localhost:5173",
+                    "http://localhost:5500",
+                    "http://localhost:3000",
                     "https://mygrocer.vercel.app",
                     "https://mygrocer-backend.onrender.com",
+                    re.compile(r"^https:\/\/.*\.vercel\.app$")
                 ]
             }
         },
@@ -49,9 +57,6 @@ def create_app(config_class=DevConfig) -> Flask:
     _register_bps(app)
 
     # === ONE-TIME: auto-create tables for free-tier deploy with retry ===
-    import time
-    from sqlalchemy.exc import OperationalError
-
     for attempt in range(5):
         try:
             with app.app_context():
@@ -65,10 +70,9 @@ def create_app(config_class=DevConfig) -> Flask:
             print(f"❌ Database setup failed: {e}")
             break
 
-        # === Health Check ===
+    # === Health Check ===
     @app.get("/api/v1/health")
     def health():
         return {"ok": True}, 200
 
     return app
- 
