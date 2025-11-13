@@ -6,31 +6,36 @@
     <title>MyGrocer | Pantry</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="/js/config.js"></script>
-    <script defer src="/js/ui.js"></script>
+    <script defer src="/frontend_live/js/config.js"></script>
+    <script defer src="/frontend_live/js/ui.js"></script>
+    <script
+      defer
+      src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
   </head>
 
   <body class="bg-gray-900 text-gray-100" x-data="pantryPage()" x-init="init()">
-    <header class="border-b bg-white shadow-sm text-black">
+    <header class="border-b bg-gray-800 shadow-sm text-gray-100">
       <div
         class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center"
       >
         <h1 class="text-xl font-semibold">MyGrocer</h1>
         <nav class="space-x-6">
-          <a href="/index.html" class="hover:underline">Home</a>
-          <a href="/recipes.html" class="hover:underline">Recipes</a>
+          <a href="/frontend_live/index.html" class="hover:underline">Home</a>
+          <a href="/frontend_live/recipes.html" class="hover:underline"
+            >Recipes</a
+          >
           <a
-            href="/pantry.html"
-            class="hover:underline font-semibold text-blue-500"
+            href="/frontend_live/pantry.html"
+            class="font-semibold text-blue-400"
             >Pantry</a
           >
-          <a href="/households.html" class="hover:underline">Households</a>
-          <a
-            href="/login.html"
-            class="text-red-600 hover:underline"
-            @click.prevent="logout()"
-            >Logout</a
+          <a href="/frontend_live/households.html" class="hover:underline"
+            >Households</a
           >
+          <button @click="logout" class="text-red-400 hover:underline">
+            Logout
+          </button>
         </nav>
       </div>
     </header>
@@ -38,7 +43,6 @@
     <main class="max-w-3xl mx-auto mt-10 p-6 bg-gray-800 rounded-lg shadow-lg">
       <h2 class="text-2xl font-semibold mb-4">Your Pantry</h2>
 
-      <!-- Inline Input Row -->
       <div class="flex items-center space-x-3 mb-6">
         <input
           id="itemName"
@@ -69,7 +73,6 @@
         </button>
       </div>
 
-      <!-- Pantry list -->
       <ul class="space-y-3">
         <template x-for="item in pantry" :key="item.id">
           <li
